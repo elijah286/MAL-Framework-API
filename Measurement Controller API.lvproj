@@ -1,5 +1,5 @@
 ﻿<?xml version='1.0' encoding='UTF-8'?>
-<Project Type="Project" LVVersion="16008000">
+<Project Type="Project" LVVersion="17008000">
 	<Item Name="My Computer" Type="My Computer">
 		<Property Name="NI.SortType" Type="Int">3</Property>
 		<Property Name="server.app.propertiesEnabled" Type="Bool">true</Property>
@@ -89,6 +89,13 @@
 				<Item Name="Format Variant Into String__ogtk.vi" Type="VI" URL="/&lt;userlib&gt;/_OpenG.lib/string/string.llb/Format Variant Into String__ogtk.vi"/>
 				<Item Name="Write Key (Variant)__ogtk.vi" Type="VI" URL="/&lt;userlib&gt;/_OpenG.lib/variantconfig/variantconfig.llb/Write Key (Variant)__ogtk.vi"/>
 				<Item Name="Search or Split String__ogtk.vi" Type="VI" URL="/&lt;userlib&gt;/_OpenG.lib/string/string.llb/Search or Split String__ogtk.vi"/>
+				<Item Name="Result Actor.lvlib" Type="Library" URL="/&lt;userlib&gt;/Common Components/Results/Result Actor.lvlib"/>
+				<Item Name="Measurement Actor.lvlib" Type="Library" URL="/&lt;userlib&gt;/Common Components/Measurement Actor/Measurement Actor.lvlib"/>
+				<Item Name="Hardware.lvlib" Type="Library" URL="/&lt;userlib&gt;/Common Components/Hardware/Hardware.lvlib"/>
+				<Item Name="Controller Actor.lvlib" Type="Library" URL="/&lt;userlib&gt;/Common Components/Controller/Controller Actor.lvlib"/>
+				<Item Name="Generic UI Actor.lvlib" Type="Library" URL="/&lt;userlib&gt;/Common Components/User Interface/Generic UI Actor.lvlib"/>
+				<Item Name="Measurement UI.lvlib" Type="Library" URL="/&lt;userlib&gt;/Common Components/Msmt UI/Measurement UI.lvlib"/>
+				<Item Name="Msmt Configuration.lvlib" Type="Library" URL="/&lt;userlib&gt;/Common Components/Msmt Configuration/Msmt Configuration.lvlib"/>
 			</Item>
 			<Item Name="vi.lib" Type="Folder">
 				<Item Name="8.6CompatibleGlobalVar.vi" Type="VI" URL="/&lt;vilib&gt;/Utility/config.llb/8.6CompatibleGlobalVar.vi"/>
@@ -117,18 +124,17 @@
 				<Item Name="Get LV Class Name.vi" Type="VI" URL="/&lt;vilib&gt;/Utility/LVClass/Get LV Class Name.vi"/>
 				<Item Name="usereventprio.ctl" Type="VI" URL="/&lt;vilib&gt;/event_ctls.llb/usereventprio.ctl"/>
 				<Item Name="Time-Delay Override Options.ctl" Type="VI" URL="/&lt;vilib&gt;/ActorFramework/Time-Delayed Send Message/Time-Delay Override Options.ctl"/>
+				<Item Name="NI_SystemLogging.lvlib" Type="Library" URL="/&lt;vilib&gt;/Utility/SystemLogging/NI_SystemLogging.lvlib"/>
+				<Item Name="High Resolution Relative Seconds.vi" Type="VI" URL="/&lt;vilib&gt;/Utility/High Resolution Relative Seconds.vi"/>
 			</Item>
 			<Item Name="mscorlib" Type="VI" URL="mscorlib">
 				<Property Name="NI.PreserveRelativePath" Type="Bool">true</Property>
 			</Item>
 			<Item Name="AF Debug.lvlib" Type="Library" URL="/&lt;resource&gt;/AFDebug/AF Debug.lvlib"/>
-			<Item Name="Result Actor.lvlib" Type="Library" URL="../../MAL-Framework/user.lib/Common Components/Results/Result Actor.lvlib"/>
-			<Item Name="Measurement Actor.lvlib" Type="Library" URL="../../MAL-Framework/user.lib/Common Components/Measurement Actor/Measurement Actor.lvlib"/>
-			<Item Name="Hardware.lvlib" Type="Library" URL="../../MAL-Framework/user.lib/Common Components/Hardware/Hardware.lvlib"/>
-			<Item Name="Controller Actor.lvlib" Type="Library" URL="../../MAL-Framework/user.lib/Common Components/Controller/Controller Actor.lvlib"/>
-			<Item Name="Generic UI Actor.lvlib" Type="Library" URL="../../MAL-Framework/user.lib/Common Components/User Interface/Generic UI Actor.lvlib"/>
-			<Item Name="Measurement UI.lvlib" Type="Library" URL="../../MAL-Framework/user.lib/Common Components/Msmt UI/Measurement UI.lvlib"/>
-			<Item Name="Msmt Configuration.lvlib" Type="Library" URL="../../MAL-Framework/user.lib/Common Components/Msmt Configuration/Msmt Configuration.lvlib"/>
+			<Item Name="LV Config Read String.vi" Type="VI" URL="/&lt;resource&gt;/dialog/lvconfig.llb/LV Config Read String.vi"/>
+			<Item Name="systemLogging.dll" Type="Document" URL="systemLogging.dll">
+				<Property Name="NI.PreserveRelativePath" Type="Bool">true</Property>
+			</Item>
 		</Item>
 		<Item Name="Build Specifications" Type="Build"/>
 	</Item>
