@@ -1,5 +1,5 @@
 ﻿<?xml version='1.0' encoding='UTF-8'?>
-<Project Type="Project" LVVersion="15008000">
+<Project Type="Project" LVVersion="16008000">
 	<Item Name="My Computer" Type="My Computer">
 		<Property Name="NI.SortType" Type="Int">3</Property>
 		<Property Name="server.app.propertiesEnabled" Type="Bool">true</Property>
@@ -88,13 +88,7 @@
 				<Item Name="Get Refnum Type Enum from Data__ogtk.vi" Type="VI" URL="/&lt;userlib&gt;/_OpenG.lib/lvdata/lvdata.llb/Get Refnum Type Enum from Data__ogtk.vi"/>
 				<Item Name="Format Variant Into String__ogtk.vi" Type="VI" URL="/&lt;userlib&gt;/_OpenG.lib/string/string.llb/Format Variant Into String__ogtk.vi"/>
 				<Item Name="Write Key (Variant)__ogtk.vi" Type="VI" URL="/&lt;userlib&gt;/_OpenG.lib/variantconfig/variantconfig.llb/Write Key (Variant)__ogtk.vi"/>
-				<Item Name="Result Actor.lvlib" Type="Library" URL="/&lt;userlib&gt;/Common Components/Results/Result Actor.lvlib"/>
-				<Item Name="Measurement Actor.lvlib" Type="Library" URL="/&lt;userlib&gt;/Common Components/Measurement Actor/Measurement Actor.lvlib"/>
-				<Item Name="Hardware.lvlib" Type="Library" URL="/&lt;userlib&gt;/Common Components/Hardware/Hardware.lvlib"/>
-				<Item Name="Controller Actor.lvlib" Type="Library" URL="/&lt;userlib&gt;/Common Components/Controller/Controller Actor.lvlib"/>
-				<Item Name="Generic UI Actor.lvlib" Type="Library" URL="/&lt;userlib&gt;/Common Components/User Interface/Generic UI Actor.lvlib"/>
-				<Item Name="Measurement UI.lvlib" Type="Library" URL="/&lt;userlib&gt;/Common Components/Msmt UI/Measurement UI.lvlib"/>
-				<Item Name="Msmt Configuration.lvlib" Type="Library" URL="/&lt;userlib&gt;/Common Components/Msmt Configuration/Msmt Configuration.lvlib"/>
+				<Item Name="Search or Split String__ogtk.vi" Type="VI" URL="/&lt;userlib&gt;/_OpenG.lib/string/string.llb/Search or Split String__ogtk.vi"/>
 			</Item>
 			<Item Name="vi.lib" Type="Folder">
 				<Item Name="8.6CompatibleGlobalVar.vi" Type="VI" URL="/&lt;vilib&gt;/Utility/config.llb/8.6CompatibleGlobalVar.vi"/>
@@ -103,7 +97,7 @@
 				<Item Name="Clear Errors.vi" Type="VI" URL="/&lt;vilib&gt;/Utility/error.llb/Clear Errors.vi"/>
 				<Item Name="Error Cluster From Error Code.vi" Type="VI" URL="/&lt;vilib&gt;/Utility/error.llb/Error Cluster From Error Code.vi"/>
 				<Item Name="Get System Directory.vi" Type="VI" URL="/&lt;vilib&gt;/Utility/sysdir.llb/Get System Directory.vi"/>
-				<Item Name="Guid Generator.vi" Type="VI" URL="/&lt;vilib&gt;/National Instruments/Msmt Framework Common Components/Guid Generator.vi"/>
+				<Item Name="Guid Generator.vi" Type="VI" URL="/&lt;vilib&gt;/National Instruments/GUID Generator/Guid Generator.vi"/>
 				<Item Name="NI_FileType.lvlib" Type="Library" URL="/&lt;vilib&gt;/Utility/lvfile.llb/NI_FileType.lvlib"/>
 				<Item Name="NI_LVConfig.lvlib" Type="Library" URL="/&lt;vilib&gt;/Utility/config.llb/NI_LVConfig.lvlib"/>
 				<Item Name="NI_PackedLibraryUtility.lvlib" Type="Library" URL="/&lt;vilib&gt;/Utility/LVLibp/NI_PackedLibraryUtility.lvlib"/>
@@ -128,6 +122,13 @@
 				<Property Name="NI.PreserveRelativePath" Type="Bool">true</Property>
 			</Item>
 			<Item Name="AF Debug.lvlib" Type="Library" URL="/&lt;resource&gt;/AFDebug/AF Debug.lvlib"/>
+			<Item Name="Result Actor.lvlib" Type="Library" URL="../../MAL-Framework/user.lib/Common Components/Results/Result Actor.lvlib"/>
+			<Item Name="Measurement Actor.lvlib" Type="Library" URL="../../MAL-Framework/user.lib/Common Components/Measurement Actor/Measurement Actor.lvlib"/>
+			<Item Name="Hardware.lvlib" Type="Library" URL="../../MAL-Framework/user.lib/Common Components/Hardware/Hardware.lvlib"/>
+			<Item Name="Controller Actor.lvlib" Type="Library" URL="../../MAL-Framework/user.lib/Common Components/Controller/Controller Actor.lvlib"/>
+			<Item Name="Generic UI Actor.lvlib" Type="Library" URL="../../MAL-Framework/user.lib/Common Components/User Interface/Generic UI Actor.lvlib"/>
+			<Item Name="Measurement UI.lvlib" Type="Library" URL="../../MAL-Framework/user.lib/Common Components/Msmt UI/Measurement UI.lvlib"/>
+			<Item Name="Msmt Configuration.lvlib" Type="Library" URL="../../MAL-Framework/user.lib/Common Components/Msmt Configuration/Msmt Configuration.lvlib"/>
 		</Item>
 		<Item Name="Build Specifications" Type="Build"/>
 	</Item>
