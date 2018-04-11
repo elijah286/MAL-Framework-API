@@ -20,7 +20,7 @@
 </Property>
 	<Property Name="NI.LVClass.IsTransferClass" Type="Bool">false</Property>
 	<Property Name="NI.LVClass.LowestCompatibleVersion" Type="Str">1.0.0.0</Property>
-	<Property Name="NI.LVClass.ParentClassLinkInfo" Type="Bin">&amp;Q#!!!!!!!)!"1!&amp;!!!-!%!!!@````]!!!!"!!%!!!"U!!!!!B:$&lt;WZU=G^M&lt;'6S)%&amp;D&gt;'^S,GRW&lt;'FC%E.P&lt;H2S&lt;WRM:8)O&lt;(:D&lt;'&amp;T=V"53$!!!!!_!!!!"!E]&gt;8.F=GRJ9DY21W^N&lt;7^O)%.P&lt;8"P&lt;G6O&gt;(-+1W^O&gt;(*P&lt;'RF=B*$&lt;WZU=G^M&lt;'6S,GRW9WRB=X-!!!!!</Property>
+	<Property Name="NI.LVClass.ParentClassLinkInfo" Type="Bin">&amp;Q#!!!!!!!)!"1!&amp;!!!-!%!!!@````]!!!!"!!%!!!#$!!!!!B:$&lt;WZU=G^M&lt;'6S)%&amp;D&gt;'^S,GRW&lt;'FC%E.P&lt;H2S&lt;WRM:8)O&lt;(:D&lt;'&amp;T=V"53$!!!!".!!%!"Q!!$5V"4#V'=G&amp;N:8&gt;P=GM)&gt;8.F=CZM;7)21W^N&lt;7^O)%.P&lt;8"P&lt;G6O&gt;(-+1W^O&gt;(*P&lt;'RF=B*$&lt;WZU=G^M&lt;'6S,GRW9WRB=X-!!!!!</Property>
 	<Item Name="Controller API.ctl" Type="Class Private Data" URL="Controller API.ctl">
 		<Property Name="NI.LibItem.Scope" Type="Int">2</Property>
 	</Item>
