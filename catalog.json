@@ -1,11 +1,197 @@
 {
   "schemaVersion": 1,
-  "version": "3.4.16",
+  "version": "3.4.33",
   "name": "LabVIEW CI",
   "description": "Portable, repo-agnostic CI/CD capabilities for LabVIEW repositories: mass compile, VI Analyzer, VIDiff comparison reports, VI snapshots / VI Browser, and a status dashboard. Driven entirely by this catalog so the configurator UI and the installer stay in sync and new capabilities are a one-entry change.",
   "history": {
     "comment": "Release notes for the tooling, newest first. `version` (above) is the CURRENT published release and MUST equal releases[0].version. The dashboard version badge and the What's New dialog read these notes to tell a consumer what changed between the version they run and the latest this source repo publishes. Each published version should also be tagged v<version> in this repo so consumers can pin an update to a specific release.",
     "releases": [
+      {
+        "version": "3.4.33",
+        "date": "2026-06-18",
+        "title": "Updating is clearer: merge the pull request, no phantom \"approve checks\" step",
+        "summary": "The What's New update flow no longer presents \"approve the pull request's checks\" as a required gate. A tooling update changes only configuration and tooling files and is opened by automation, so the pull request it creates normally has no checks at all and is ready to merge immediately - but the old wording told you to \"approve its checks if GitHub shows Action required,\" sending people to hunt for an Approve and run button that was not there and making updates feel stuck. The flow now leads with the real action - Merge it - and the live progress tracker reads the pull request's actual check state: it says plainly when there is nothing to wait for, and only surfaces Approve and run when GitHub has genuinely paused a check on an automation-opened pull request. The tracker's fourth step is renamed from Approve checks to Review, and the up-front checklist and help text were reworded to match.",
+        "highlights": [
+          "The update tracker now leads with Merge it and reads the pull request's real check state, so it tells you plainly there is nothing to approve instead of waiting on a check that does not exist.",
+          "Approve and run guidance now appears only when GitHub has actually paused a check (Action required) on an automation-opened pull request - which a config and tooling-only update normally does not have.",
+          "Renamed the tracker step from Approve checks to Review and reworded the What's New checklist and help text so the only required action is merging the pull request."
+        ]
+      },
+      {
+        "version": "3.4.32",
+        "date": "2026-06-18",
+        "title": "Queue all history: every cell shows 'Queued' the instant you click, and one failed dispatch can't stop the rest",
+        "summary": "When you click Run all history (or queue activities from the Populate history dialog), every targeted cell now turns into a 'Queued' badge the instant you click - in a single pass, before the throttled dispatch even starts - so the whole batch visibly lights up at once instead of trickling in one cell at a time. Previously each cell was only marked after its own dispatch returned, in sequence, so if any single dispatch was slow, errored, or threw partway through, the cells after it could be left looking unqueued even though you asked to run them - and in the worst case the activities still waiting in line were never dispatched at all. The dispatch sequence is now resilient: each activity is queued independently, a failure reverts only its own cell (and is reported), and no single error can abort the rest. A cell whose dispatch genuinely fails returns to its run button so you can retry just that one.",
+        "highlights": [
+          "Run all history (and Populate history) now paint every targeted cell 'Queued' immediately on click, as one batch, instead of one at a time as each dispatch returns.",
+          "A slow, failed, or throwing dispatch can no longer stop the remaining activities from being queued - each cell is dispatched independently and the sequence always continues.",
+          "If a cell's dispatch truly fails it reverts to its run button and the failure is reported, so the dashboard never shows a phantom 'Queued' for something that did not start."
+        ]
+      },
+      {
+        "version": "3.4.31",
+        "date": "2026-06-18",
+        "title": "VI Browser tree: file extensions are shown and the folder tree opens expanded",
+        "summary": "Two quality-of-life changes to the VI Browser's file tree. File names now keep their extension - for example 'Initialize Listener.vi' or 'Controller Commands.ctl' - instead of being stripped to the bare name, so VIs and type definitions are easy to tell apart at a glance. And the folder tree now opens fully expanded every time you open the VI Browser, so the whole VI hierarchy is visible immediately instead of collapsed to the top-level folder. Your own expand and collapse choices are still preserved while you browse, and the Expand all and Collapse all controls work exactly as before.",
+        "highlights": [
+          "File-tree labels now include the extension (.vi, .ctl), so VIs and controls are distinguishable at a glance.",
+          "The folder tree opens fully expanded on every load - not just the first visit - so the full hierarchy is visible immediately.",
+          "Manual expand and collapse choices are preserved while browsing; Expand all and Collapse all are unchanged."
+        ]
+      },
+      {
+        "version": "3.4.30",
+        "date": "2026-06-18",
+        "title": "VI Snapshots column now reflects the real gallery, with a per-revision snapshot glyph",
+        "summary": "The dashboard's Snapshots column previously read VIDiff data, so it sat empty for revisions that DID have rendered snapshots. It now reads the content-addressed snapshot store directly - a new blobs.json index of every rendered VI blob (or, for galleries built before it, the per-commit manifests) - and reports how many of each revision's VIs have a snapshot. Full coverage shows a count; partial coverage is flagged amber so the missing VIs are visible (older revisions whose changed VIs were never rendered), and a revision with none offers a one-click run. That run, and the empty-cell history backfill, now dispatch an incremental backfill that renders exactly the missing VIs across all history (already-rendered content is skipped). A small image glyph next to each commit message marks revisions that have snapshots, with a 'Snapshots exist for this revision' tooltip.",
+        "highlights": [
+          "The Snapshots column reads the real snapshot store instead of VIDiff, so revisions that have snapshots no longer show an empty column.",
+          "Partial coverage is shown as have/total (amber) and a per-message image glyph marks revisions that have snapshots - making missing VIs visible at a glance.",
+          "Running snapshots from an empty cell now backfills the whole history incrementally, rendering exactly the VIs that were never captured."
+        ]
+      },
+      {
+        "version": "3.4.29",
+        "date": "2026-06-18",
+        "title": "Queued cells stay put until the run finishes - and show a clickable red error if it fails",
+        "summary": "When you queue an activity from a dashboard cell - a single Run now, a re-run, or a whole-history backfill - the cell's 'Queued' badge now stays put until that run actually finishes, even if you close the dashboard and come back much later. Previously the optimistic badge was only remembered for about twenty minutes and then quietly reverted to the run button, so a run still waiting behind GitHub's concurrency limit looked like it had vanished with no result. The dashboard now keeps each queued cell tied to its real GitHub run and reconciles it on every visit - looking the run up directly when it is too old to appear in recent activity - so a run that is still queued or running keeps its badge for as long as it takes, a finished run hands off to the normal pass/fail result, and a run that errored turns the cell into a sticky red exclamation you can click to open the failed run and see exactly what went wrong.",
+        "highlights": [
+          "A queued cell now persists until its run finishes - closing the dashboard and coming back later no longer makes the 'Queued' badge disappear.",
+          "Runs are reconciled against GitHub on every visit, and looked up directly by id when too old to show in recent activity, so a run held behind the concurrency limit keeps its place instead of timing out.",
+          "A failed run now marks the cell with a clickable red error badge that opens the run on GitHub to show what went wrong, instead of silently reverting to the run button."
+        ]
+      },
+      {
+        "version": "3.4.28",
+        "date": "2026-06-18",
+        "title": "What's New opens from the source site, so updates always use the latest UI",
+        "summary": "The dashboard's What's New / Update entry now opens the always-current copy hosted on the LabVIEW CI source site instead of the copy bundled with your repository - passing your repository, its installed version, and its source pointer along in the link. A repository that is behind would otherwise open its own older update page, carrying whatever bugs that version shipped; routing through the source site means you always get the newest update experience and fixes regardless of how old the installed tooling is. The page reads your repository's deployed catalog cross-origin to fill in anything not in the link, shows your repository and installed version, and dispatches the update against your repository exactly as before. A repository's own source dashboard still opens its local page. This is the first half of decoupling the upgrade flow from whatever tooling version you happen to have installed.",
+        "highlights": [
+          "The What's New / Update menu entry now opens the source site's always-latest page (with your repo, version, and source pointer as parameters) instead of your repository's bundled copy - so out-of-date repositories still get the newest update UI and fixes.",
+          "The page resolves the target repository from the link and reads that repository's deployed catalog cross-origin, so it shows the right installed version and dispatches the update against the right repository.",
+          "The source repository's own dashboard is unchanged - it still opens its local What's New page."
+        ]
+      },
+      {
+        "version": "3.4.27",
+        "date": "2026-06-18",
+        "title": "Fix: the tooling-update workflow no longer fails to parse after Apply to New Repo",
+        "summary": "Fixes a YAML syntax error in the Apply LabVIEW CI update workflow (apply-tooling-update.yml) that made GitHub report it as an invalid workflow file. The relocation-pointer lookup used a multi-line inline Python command that broke out of the workflow's run block, so after an install GitHub surfaced a second, failing run by filename right next to the dashboard build - which looked like a duplicate 'Add LabVIEW CI pipeline' action that had failed. The lookup is now a single-line command, so the workflow parses correctly and stays dispatch-only: it runs only when you click Update now and no longer produces a spurious failing run when you Apply the tooling to a new repository. How updates work is otherwise unchanged.",
+        "highlights": [
+          "The Apply LabVIEW CI update workflow no longer fails GitHub's workflow-file validation (the 'invalid workflow file, line 89' error).",
+          "Applying the tooling to a new repository no longer shows a second, failing run next to the dashboard build - the update workflow is dispatch-only and runs only when you click Update now.",
+          "No change to how updates work; the relocation-pointer lookup was rewritten as a single-line command so it stays inside the workflow's run block."
+        ]
+      },
+      {
+        "version": "3.4.26",
+        "date": "2026-06-18",
+        "title": "Apply to New Repo can set up one-click tooling updates",
+        "summary": "The installer can now make future tooling updates a single click. A new option - Enable one-click tooling updates, on by default - stores your install token, encrypted in your browser and saved only as the new repository's TOOLING_UPDATE_TOKEN secret, so that when you later click Update now the update workflow opens its pull request using that token. This avoids the common case where a repository does not allow GitHub Actions to open pull requests (the default), which otherwise leaves an update built and pushed but with no pull request until you open it by hand. The option adds Secrets to the permissions the pre-filled token requests; if you skip it, or your token cannot write Secrets, nothing breaks - the What's New page still offers a one-time token at update time. The token is sealed with the repository's public key before storage and is sent only to api.github.com, never to the page or to CI.",
+        "highlights": [
+          "New install option (default on): stores your token as the repository's TOOLING_UPDATE_TOKEN secret so future Update now clicks open their pull request automatically - no need to allow the Actions bot to create pull requests.",
+          "The token is sealed in your browser (libsodium) with the repository's public key and saved only as a repository secret - sent only to api.github.com, never to the page or CI.",
+          "Optional and safe to skip: the pre-filled token requests Secrets only when the option is checked, and if it is not set up the What's New page prompts for a one-time token when you update."
+        ]
+      },
+      {
+        "version": "3.4.25",
+        "date": "2026-06-18",
+        "title": "The About link on client dashboards now opens the project's About page",
+        "summary": "On a dashboard for a repository that installed this tooling, the About item in the menu pointed at that site's own copy of the About page - but that page is only published on the main LabVIEW CI project site, so on a client dashboard the link led nowhere. About now always opens the About page on the main project site, in a new tab so your own dashboard stays open. The link is built from the project's published source location and follows the relocation pointer, so it keeps working automatically if the tooling ever moves to a new home.",
+        "highlights": [
+          "The About menu item on a client dashboard now opens the main project's About page, instead of a copy that is never published on client sites.",
+          "On a client dashboard the link opens in a new tab so your own dashboard stays open; on the main project site it still opens in place.",
+          "The link is derived from the published source location and follows the relocation pointer, so it keeps working if the project ever moves to a new repository."
+        ]
+      },
+      {
+        "version": "3.4.24",
+        "date": "2026-06-18",
+        "title": "The one-time token offer also covers repos that block GitHub Actions from opening pull requests",
+        "summary": "Update now finishes through a pull request that the update workflow opens for you. When your repository does not allow GitHub Actions to create pull requests, that automatic step is blocked and no pull request appears - even though the update itself built and pushed correctly. The What's New page used to assume a missing pull request always meant a workflow-file-only update and said so, which was confusing when the real reason was the repository's pull-request permission. It now explains both causes and offers the same one-time token either way: the pre-filled token already requests Pull requests permission, so once it is saved as the repository's TOOLING_UPDATE_TOKEN secret the update restarts and opens its pull request as you, bypassing the Actions restriction, with no trip to repository settings. Prefer to finish by hand? The message still links the workflow run, whose summary has a direct 'open the pull request' link.",
+        "highlights": [
+          "The inline one-time token now appears for both reasons a pull request can be missing: an update that changes protected workflow files, and a repository that does not allow GitHub Actions to open pull requests.",
+          "Saving the token (which already requests Pull requests permission) restarts the update so it opens the pull request as you - bypassing the 'Allow GitHub Actions to create and approve pull requests' setting - without changing any repository settings.",
+          "Clearer wording: the page no longer claims 'this release changes only workflow files' when the real cause is the pull-request permission, and it still links the workflow run for anyone who prefers to open the pull request by hand."
+        ]
+      },
+      {
+        "version": "3.4.23",
+        "date": "2026-06-18",
+        "title": "Finish a workflow-only update without leaving the What's New page",
+        "summary": "When you click Update now and the new version changes only GitHub workflow files, your repository's built-in token cannot push them, so no pull request can be opened. The What's New page now recognizes this and lets you finish right there: it shows a one-time token field with a ready-made link that pre-selects exactly the permissions needed (Contents, Workflows, Pull requests and Secrets, all read and write), and when you paste the token it is encrypted in your browser, stored as the repository's TOOLING_UPDATE_TOKEN secret, and the update restarts on its own - no trip to repository settings and no command line. This release also fixes a tracking bug that could report a pull request as missing: the page watched the wrong branch name for the update's pull request, so an update that had actually opened its pull request looked stuck on 'no pull request appeared'. The page now matches the real update branch, so a genuine pull request is always detected and the token field appears only when an update truly needs one.",
+        "highlights": [
+          "When an update only changes workflow files and no pull request can open, the What's New page now offers an inline one-time token: a pre-filled creation link plus a paste field that finishes the update in place, instead of sending you to your repository settings.",
+          "The pasted token is sealed in your browser (libsodium) and saved only as the repository's TOOLING_UPDATE_TOKEN secret - sent only to api.github.com, never to the page or CI, and not kept in your browser - then the update restarts automatically.",
+          "Fixed a false 'no pull request appeared' state: the page watched the wrong branch name and missed a pull request that had actually opened. It now matches the real update branch, so a real pull request is always detected."
+        ]
+      },
+      {
+        "version": "3.4.22",
+        "date": "2026-06-18",
+        "title": "Apply to New Repo adds the dashboard badge at the top of your README",
+        "summary": "When the installer adds the CI dashboard link to your README it now places the badge and link right after your project title instead of at the very end. On a repository with a long README - for example one that already carries an auto-generated VI Browser snapshot table - the badge was easy to miss at the bottom; now it sits just under the title where it is visible without scrolling. The link is still added only once: it is skipped when your README already contains it, so re-installs and tooling updates never duplicate or move it, and a brand-new README still gets the title followed by the badge.",
+        "highlights": [
+          "The dashboard badge and link are inserted right after your README's level-1 title, so they are visible at the top instead of buried beneath a long README.",
+          "Still idempotent: the badge is added only when your README does not already contain it, so re-installs never duplicate it (an existing badge keeps its current position).",
+          "Robust placement: a README whose title sits inside a leading code block, or that has no top-level heading, gets the badge prepended cleanly at the very top."
+        ]
+      },
+      {
+        "version": "3.4.21",
+        "date": "2026-06-18",
+        "title": "Apply to New Repo always opens the latest installer from the source repository",
+        "summary": "The Apply to New Repo button on a repository's dashboard now opens the installer hosted on the central LabVIEW CI source site (in a new tab) instead of the copy bundled with that repository's own dashboard. Because the installer page and its setup steps improve over time, opening the central, always-current version means you get the latest install experience and fixes every time you set up a new repository - without first having to update the tooling in the repository you launched it from. The installer still records every new repository against the source repository so it appears in the client directory, and the source repository's own dashboard keeps opening its local copy, which is already the latest. Nothing about how a repository is configured or installed changes - only where the always-up-to-date installer page is loaded from.",
+        "highlights": [
+          "Apply to New Repo on an installed dashboard now opens the source site's installer in a new tab, so you always get the newest install page and UX.",
+          "No more relying on the possibly-older installer snapshot bundled with your repository's dashboard - improvements to the installer reach you immediately.",
+          "The source repository's own dashboard is unchanged: it opens its local installer, which is already the latest."
+        ]
+      },
+      {
+        "version": "3.4.20",
+        "date": "2026-06-18",
+        "title": "Dashboard menu reflects an in-progress update instead of offering to start it again",
+        "summary": "When a tooling update is already on its way to your repository, the dashboard's More menu now reflects that instead of inviting you to start it over. Previously the menu kept showing 'Update available' - which re-opens the update flow - even while the newer version was being applied and the dashboard was rebuilding, so it looked like you still had to act and you could accidentally start a second update on top of the running one. Now, whenever the update workflow is running or an update has been merged and is deploying, the menu shows that the update is in progress and links straight to the in-flight action so you can watch it finish; the 'Update available' option is hidden until the current update lands. This works no matter which browser started the update. There is no change to an already-installed pipeline.",
+        "highlights": [
+          "The version entry in the More menu now reads 'Updating to v...' and links to the running action whenever a tooling update is being applied - the update workflow is running, or a merged update is deploying.",
+          "The 'Update available' option, which re-opens the update flow, is suppressed while an update is already in flight, so a second update can't be started on top of the running one.",
+          "Detection no longer depends on the browser that started the update: it checks the update workflow and compares your repository's committed version against the deployed dashboard."
+        ]
+      },
+      {
+        "version": "3.4.19",
+        "date": "2026-06-18",
+        "title": "Re-running a check against a past commit no longer fails to start",
+        "summary": "Fixes a problem when you use Run workflow and type a specific commit to re-check (for example to backfill a report for an older commit): the job stopped immediately with \"fatal: invalid reference: origin/main\" instead of running. When you target a past commit the workflows first restore their CI scripts from the main branch, but they referred to a branch reference that isn't available after checking out a single commit. They now fetch main explicitly before restoring, so dispatching Mass Compile, VI Analyzer, VIDiff, Unit Tests or Antidoc against any commit works again. Runs from a push, a pull request, or Run workflow against the current commit were never affected. Update to pick up the fix in your repository's workflows.",
+        "highlights": [
+          "Run workflow against a specific past commit now starts correctly - the \"invalid reference: origin/main\" (exit 128) failure is fixed across the Mass Compile, VI Analyzer, VIDiff, Unit Tests and Antidoc container workflows (Windows and Linux).",
+          "The workflows now fetch the main branch explicitly before restoring their CI scripts, instead of relying on a remote-tracking branch that isn't present after a single-commit checkout.",
+          "Push, pull request, and Run-workflow-against-current-commit runs were unaffected; update to get the fix in your installed workflows."
+        ]
+      },
+      {
+        "version": "3.4.18",
+        "date": "2026-06-18",
+        "title": "Apply to New Repo: reliably switch on GitHub Pages, explain when it can't, and link the live dashboard",
+        "summary": "The configurator now turns on GitHub Pages reliably for any repository that supports it, so you don't have to touch Settings. Enabling Pages is retried a few times to ride out the brief race right after the gh-pages branch is created (which previously left Pages off on a repo that fully supported it). When Pages genuinely can't be switched on, the installer explains exactly why and what to do: a private repository needs to be made public or upgraded to GitHub Pro, Team, or Enterprise; a token missing the Pages permission prompts you to Forget token and reinstall to create one that includes it. And when the dashboard goes live, a prominent \"Open your dashboard\" link is shown. No change to an already-installed pipeline.",
+        "highlights": [
+          "Turning on GitHub Pages now retries the transient race after the gh-pages branch is created, so it succeeds for any repo that supports it - no manual Settings step.",
+          "Situation-specific guidance when Pages can't be enabled: private repo (make public or upgrade to Pro/Team/Enterprise) vs a token missing the Pages permission (Forget token + reinstall).",
+          "A prominent 'Open your dashboard' link appears once the new dashboard is confirmed live."
+        ]
+      },
+      {
+        "version": "3.4.17",
+        "date": "2026-06-18",
+        "title": "About page links to the tooling's canonical home",
+        "summary": "The About page (FAQ) now shows the tooling's official repository at the top and resolves every repository link on the page from the relocation pointer (.github/labview-ci/source.json) instead of a hard-coded address. If the tooling is ever moved to a new home, the About page's links automatically point to the new repository - on the source site and on every installed dashboard alike. There is no change to an already-installed pipeline.",
+        "highlights": [
+          "The About page shows the tooling's official repository link prominently at the top.",
+          "Every repository link on the About page now resolves from the relocation pointer, so they follow the tooling to a new home automatically."
+        ]
+      },
       {
         "version": "3.4.16",
         "date": "2026-06-18",
