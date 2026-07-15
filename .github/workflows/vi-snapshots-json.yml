@@ -23,6 +23,7 @@
 #            (no JSON => that VI simply stays on the 1.0 view).
 
 name: VI Snapshots JSON
+run-name: VI Browser 2.0 Linux ${{ github.event.inputs.target_sha || github.event.workflow_run.head_sha || github.sha }}${{ github.event.inputs.force == 'true' && ' force' || '' }}
 
 on:
   workflow_dispatch:
@@ -32,12 +33,20 @@ on:
         type: choice
         options: [head, backfill]
         default: head
+      target_sha:
+        description: "Commit SHA whose VIs should be rendered in head mode; blank = the dispatched ref's HEAD"
+        required: false
+        default: ""
+      force:
+        description: "Re-render VI Browser 2.0 JSON even when outputs already exist"
+        required: false
+        default: "false"
   workflow_run:
     workflows: ["VI Snapshots and VI Browser"]
     types: [completed]
 
 concurrency:
-  group: vi-snapshots-json-${{ github.ref }}
+  group: vi-snapshots-json-${{ github.event.inputs.target_sha || github.event.workflow_run.head_sha || github.sha }}
   cancel-in-progress: true
 
 permissions:
@@ -82,17 +91,22 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
-      - name: Resolve the render image (this repo's own GHCR; override with the TOIMAGES_IMAGE variable)
+      - name: Resolve the render image (the Linux worker, which bakes in the 2.0 render engine; override with TOIMAGES_IMAGE)
         id: img
         run: |
+          owner=$(printf '%s' "${{ github.repository_owner }}" | tr 'A-Z' 'a-z')
+          repo=$(printf '%s' "${{ github.event.repository.name }}" | tr 'A-Z' 'a-z')
+          # The VI Browser 2.0 render engine now ships INSIDE the Linux worker image
+          # (seeded/copied on install), so there is no separate image to build. Use
+          # the worker's moving Linux tag; override with the TOIMAGES_IMAGE variable.
+          fallback="ghcr.io/${owner}/${repo}-labview:linux-latest"
           override="${{ vars.TOIMAGES_IMAGE }}"
           if [ -n "$override" ]; then
             echo "image=$override" >> "$GITHUB_OUTPUT"
           else
-            owner=$(printf '%s' "${{ github.repository_owner }}" | tr 'A-Z' 'a-z')
-            repo=$(printf '%s' "${{ github.event.repository.name }}" | tr 'A-Z' 'a-z')
-            echo "image=ghcr.io/${owner}/${repo}-toimages:latest" >> "$GITHUB_OUTPUT"
+            echo "image=$fallback" >> "$GITHUB_OUTPUT"
           fi
+          echo "fallback=$fallback" >> "$GITHUB_OUTPUT"
 
       - name: Log in to GHCR (built-in token - no setup required)
         run: echo '${{ secrets.GITHUB_TOKEN }}' | docker login ghcr.io -u '${{ github.actor }}' --password-stdin
@@ -101,12 +115,25 @@ jobs:
         id: pull
         run: |
           IMG='${{ steps.img.outputs.image }}'
+          FALLBACK='${{ steps.img.outputs.fallback }}'
           if docker pull "$IMG"; then
             echo "ok=true" >> "$GITHUB_OUTPUT"
+            echo "image=$IMG" >> "$GITHUB_OUTPUT"
             echo "Using $IMG"
           else
-            echo "ok=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::Render image $IMG is not available yet - run 'Build VI Browser 2.0 render image' first. The VI Browser uses the 1.0 view until then."
+            echo "::warning::Render image $IMG could not be pulled. Falling back to $FALLBACK."
+            if [ "$IMG" != "$FALLBACK" ] && docker pull "$FALLBACK"; then
+              echo "ok=true" >> "$GITHUB_OUTPUT"
+              echo "image=$FALLBACK" >> "$GITHUB_OUTPUT"
+              echo "Using fallback $FALLBACK"
+            else
+              echo "ok=false" >> "$GITHUB_OUTPUT"
+              echo "::notice::The Linux worker image $FALLBACK is not available yet (it is seeded on install). The VI Browser uses the 1.0 view until then."
+              if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+                echo "::error::No pullable VI Browser 2.0 render image was available for this manual run."
+                exit 1
+              fi
+            fi
           fi
 
       - name: Checkout repository
@@ -129,10 +156,11 @@ jobs:
         if: steps.pull.outputs.ok == 'true'
         env:
           WS: ${{ github.workspace }}
-          # workflow_dispatch passes mode (head|backfill); workflow_run has none -> head.
+          # workflow_dispatch passes mode and target_sha; workflow_run has none -> dispatched ref HEAD.
           MODE: ${{ github.event.inputs.mode || 'head' }}
-          TARGET_SHA: ${{ github.sha }}
-          IMAGE: ${{ steps.img.outputs.image }}
+          TARGET_SHA: ${{ github.event.inputs.target_sha || github.sha }}
+          FORCE: ${{ github.event.inputs.force || 'false' }}
+          IMAGE: ${{ steps.pull.outputs.image }}
           OUT: ${{ github.workspace }}/ci-out/vi-snapshots
           GHP: ${{ github.workspace }}/_ghp
         run: |
@@ -149,9 +177,7 @@ jobs:
 
       - name: Deploy JSON to GitHub Pages (preserves existing HTML + JSON)
         if: steps.pull.outputs.ok == 'true' && steps.verify.outputs.ok == 'true'
-        uses: peaceiris/actions-gh-pages@v4.1.0
+        uses: ./.github/actions/publish-gh-pages
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ${{ github.workspace }}/ci-out/vi-snapshots
           destination_dir: vi-snapshots
-          keep_files: true

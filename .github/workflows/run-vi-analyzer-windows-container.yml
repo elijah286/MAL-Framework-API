@@ -1,4 +1,5 @@
 name: Run VI Analyzer — Windows Container
+run-name: VI Analyzer Windows container - ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.commit_sha || github.event.pull_request.head.sha || github.sha }}
 
 on:
   pull_request:
@@ -49,6 +50,7 @@ permissions:
   pages: write
   statuses: write
   packages: read
+  actions: read   # so wait-for-worker-image.sh can read the worker-image build runs
 
 # Serialize report deploys to gh-pages. peaceiris/actions-gh-pages clones, commits,
 # and pushes the branch; two report jobs pushing at once make the loser's push bounce
@@ -101,21 +103,20 @@ jobs:
         if: github.event.inputs.commit_sha != ''
         shell: bash
         run: |
-          git fetch --no-tags origin main
-          git checkout FETCH_HEAD -- .github/labview .github/workflows
+          git fetch --no-tags origin "${{ github.event.repository.default_branch }}"
+          git checkout FETCH_HEAD -- .github/labview .github/workflows .github/actions/publish-gh-pages
 
       # GHCR rejects upper-case repository names. The Configure dialog writes the
       # selected container tag to config.container.use in .github/labview-ci.yml
       # (default "latest"); when present, this revision is analyzed inside that tag
       # of the project's custom worker image, so the project's baked VIPC
-      # dependencies are available. When absent we fall back to the version tag
-      # (the original behavior). Runs after checkout so it can read the revision's
-      # own config.
+      # dependencies are available. When absent we use the shared repo worker's
+      # latest tag so Windows action runners default to the same container. Runs
+      # after checkout so it can read the revision's own config.
       - name: Resolve container image name
         shell: bash
         env:
           IMAGE_OVERRIDE: ${{ vars.LABVIEW_IMAGE_NAME }}
-          IMAGE_TAG: ${{ vars.LABVIEW_VERSION || '2026' }}
           BASE_IMAGE: nationalinstruments/labview:latest-windows
         run: |
           owner=$(printf '%s' "${GITHUB_REPOSITORY%%/*}" | tr '[:upper:]' '[:lower:]')
@@ -123,9 +124,8 @@ jobs:
           name=$(printf '%s' "$name" | tr '[:upper:]' '[:lower:]')
           custom="ghcr.io/${owner}/${name}"
           # Per-action container selection. config.container.actions.<id> wins, then
-          # the project-wide config.container.use. With neither set VI Analyzer keeps
-          # its default (the custom image at the version tag) since the full test set
-          # needs the custom image. "base" forces the bare NI image for this action;
+          # the project-wide config.container.use. With neither set VI Analyzer uses
+          # the shared custom worker image at :latest. "base" forces the bare NI image;
           # "latest"/"<tag>" select that tag of the custom worker image.
           ACTION_ID="vi-analyzer"
           CFG=.github/labview-ci.yml
@@ -152,7 +152,7 @@ jobs:
             fi
           fi
           if [ -z "$sel" ]; then
-            img="${custom}:${IMAGE_TAG}"
+            img="${custom}:latest"
           elif [ "$sel" = "base" ] || [ "$sel" = "none" ]; then
             img="${BASE_IMAGE}"
           elif [ "$sel" = "latest" ]; then
@@ -165,15 +165,7 @@ jobs:
 
       - name: Ensure Docker daemon is running
         shell: powershell
-        run: |
-          $svc = Get-Service -Name docker -ErrorAction SilentlyContinue
-          if ($null -eq $svc) {
-            throw 'Docker service not found on this runner.'
-          }
-          if ($svc.Status -ne 'Running') {
-            Start-Service docker
-          }
-          docker version
+        run: ./.github/labview/ensure-docker.ps1
 
       - name: Log in to GHCR
         uses: docker/login-action@v4
@@ -193,37 +185,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          set -euo pipefail
-          SHA="${{ steps.sha.outputs.sha }}"
-          WF="Build LabVIEW CI Image"
-          BEFORE="${{ github.event.before }}"
-          changed=false
-          if [ -n "${BEFORE:-}" ] && git cat-file -e "${BEFORE}^{commit}" 2>/dev/null; then
-            if git diff --name-only "$BEFORE" "$SHA" \
-                 | grep -Eq '(\.vipc$|^\.github/docker/labview-ci\.Dockerfile$|^\.github/labview/vipm/)'; then
-              changed=true
-            fi
-          fi
-          if [ "$changed" != "true" ]; then
-            echo "No worker-affecting change in this push; not waiting."
-            exit 0
-          fi
-          echo "Worker inputs changed - waiting for '$WF' to finish for $SHA."
-          appear_deadline=$(( $(date +%s) + 300 ))
-          overall_deadline=$(( $(date +%s) + 1800 ))
-          seen=false
-          api="repos/${{ github.repository }}/actions/runs?head_sha=$SHA&per_page=50"
-          while :; do
-            total=$(gh api "$api" --jq "[.workflow_runs[]|select(.name==\"$WF\")]|length" 2>/dev/null || echo 0)
-            pending=$(gh api "$api" --jq "[.workflow_runs[]|select(.name==\"$WF\")|select(.status!=\"completed\")]|length" 2>/dev/null || echo 0)
-            now=$(date +%s)
-            if [ "${total:-0}" -gt 0 ]; then seen=true; fi
-            if [ "$seen" = "true" ] && [ "${pending:-0}" -eq 0 ]; then echo "Worker image build complete."; break; fi
-            if [ "$seen" != "true" ] && [ "$now" -ge "$appear_deadline" ]; then echo "Build did not appear in time; proceeding."; break; fi
-            if [ "$now" -ge "$overall_deadline" ]; then echo "Timed out waiting; proceeding."; break; fi
-            echo "  ... still waiting (total=$total pending=$pending)"
-            sleep 20
-          done
+          bash .github/labview/wait-for-worker-image.sh "${{ steps.sha.outputs.sha }}" "${{ github.event.before }}"
 
       - name: Pull LabVIEW container image
         id: pull
@@ -367,12 +329,10 @@ jobs:
 
       - name: Deploy report to GitHub Pages
         if: steps.report.outputs.exists == 'true'
-        uses: peaceiris/actions-gh-pages@v4.1.0
+        uses: ./.github/actions/publish-gh-pages
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ${{ github.workspace }}/ci-out/vi-analyzer
           destination_dir: ${{ steps.dest.outputs.dir }}
-          keep_files: true
 
       - name: Post commit status
         if: always() && github.event.inputs.files == ''

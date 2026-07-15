@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <!--
   .github/pages/unit-tests.html
-  Top-level "Unit Testing" configurator. One tab per framework (Caraya, VI
-  Tester, and — coming soon — NI Unit Test Framework, plus room for more). For
+  Top-level "Unit Testing" configurator. One tab per framework (Caraya, LUnit,
+  VI Tester, and NI Unit Test Framework, plus room for more). For
   each enabled framework the user declares WHERE its tests live in the project
   (virtual-folder paths or globs); the CI runner auto-discovers tests within
   those locations by each framework's native convention. Settings are written to
@@ -20,6 +20,9 @@
   <style>
     :root{--bg:#0d1117;--surface:#161b22;--surface2:#0d1117;--border:#30363d;--fg:#e6edf3;--muted:#8b949e;--link:#58a6ff;--accent:#238636;--accent-fg:#fff;--chip:#21262d;--code:#010409;--warn:#9a6700}
     @media(prefers-color-scheme:light){:root{--bg:#fff;--surface:#f6f8fa;--surface2:#fff;--border:#d0d7de;--fg:#1f2328;--muted:#57606a;--link:#0969da;--accent:#1f883d;--chip:#eaeef2;--code:#f6f8fa}}
+    /* Re-assert page-specific tokens the shared header's theme toggle doesn't manage. */
+    :root[data-lvci-theme=dark]{--surface2:#0d1117;--muted:#8b949e}
+    :root[data-lvci-theme=light]{--surface2:#fff;--muted:#57606a}
     *{box-sizing:border-box}
     body{margin:0;background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;line-height:1.5}
     a{color:var(--link);text-decoration:none}a:hover{text-decoration:underline}
@@ -49,15 +52,35 @@
     .addloc{margin-top:8px}
     .conv{margin-top:14px;font-size:.82em;color:var(--muted);background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px}
     .conv b{color:var(--fg)}
+    .projs{display:flex;flex-direction:column;gap:6px;margin-bottom:2px}
+    .proj{display:flex;align-items:center;gap:9px;font-size:.86em;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:7px 11px;cursor:pointer}
+    .proj input{width:15px;height:15px;accent-color:var(--accent);margin:0;flex:0 0 auto}
+    .proj code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.92em;color:var(--fg);word-break:break-all}
+    .projmiss{margin-left:auto;font-size:.78em;color:var(--warn);font-style:italic;white-space:nowrap}
+    .projnone{font-size:.84em;color:var(--muted);background:var(--surface2);border:1px dashed var(--border);border-radius:6px;padding:9px 11px}
+    .projnone code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+    .projnote{font-size:.8em;color:var(--muted);margin:8px 0 2px}
+    .revsel{width:100%;margin:2px 0 10px;padding:8px 10px;background:var(--surface2);color:var(--fg);border:1px solid var(--border);border-radius:6px;font-size:.84em;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+    .projwarn{font-size:.8em;color:var(--warn);margin:6px 0 2px}
     .disablednote{color:var(--muted);font-size:.86em;font-style:italic}
     .codebox{position:relative;background:var(--code);border:1px solid var(--border);border-radius:8px;padding:14px;margin-top:10px}
     pre{margin:0;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.78em;white-space:pre-wrap;word-break:break-word;color:var(--fg);max-height:300px;overflow:auto}
     .copy{position:absolute;top:8px;right:8px;padding:4px 10px;font-size:.72em;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--fg);cursor:pointer}
     .actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:10px}
     button.primary{padding:9px 16px;font-size:.9em;font-weight:600;border:1px solid transparent;border-radius:6px;background:var(--accent);color:var(--accent-fg);cursor:pointer}
+    button:disabled{opacity:.6;cursor:not-allowed}
     .status{font-size:.82em;color:var(--muted);margin-top:8px;min-height:1.2em}
     .status.ok{color:var(--accent)}.status.err{color:#cf222e}
+    .tokpanel{border:1px solid var(--border);border-radius:8px;padding:12px;background:var(--surface2);margin:10px 0 12px;font-size:.84em}
+    .tokpanel[hidden]{display:none}
+    .tokpanel input{width:100%;margin:8px 0;padding:8px 10px;background:var(--bg);color:var(--fg);border:1px solid var(--border);border-radius:6px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
     .subhead{font-weight:600;font-size:.9em;margin:14px 0 6px}
+    .thresholds{display:grid;grid-template-columns:repeat(3,minmax(150px,1fr));gap:10px;margin-top:10px}
+    .threshold{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px}
+    .threshold strong{display:block;font-size:.84em;margin-bottom:4px}
+    .threshold small{display:block;color:var(--muted);font-size:.74em;min-height:2.8em}
+    .threshold input{width:100%;margin-top:8px;padding:8px 10px;background:var(--bg);color:var(--fg);border:1px solid var(--border);border-radius:6px;font-size:.9em}
+    @media(max-width:700px){.thresholds{grid-template-columns:1fr}}
   </style>
 </head>
 <body>
@@ -86,8 +109,29 @@
     </section>
 
     <section>
-      <h2>3. Review &amp; apply</h2>
-      <p class="hint">Download the updated config and commit it, or copy the <code class="inl">unitTests</code> block into your existing <code class="inl">.github/labview-ci.yml</code>.</p>
+      <h2>3. Badge thresholds</h2>
+      <p class="hint">The dashboard badge shows the percentage of tests that failed. Colours use pass-rate thresholds, which is the usual way to define test-health gates.</p>
+      <div class="thresholds">
+        <label class="threshold"><strong>Green</strong><small>Pass rate at or above this value.</small><input id="thrGreen" type="number" min="0" max="100" step="1" value="100"></label>
+        <label class="threshold"><strong>Yellow</strong><small>Pass rate at or above this value, but below Green.</small><input id="thrYellow" type="number" min="0" max="100" step="1" value="80"></label>
+        <label class="threshold"><strong>Red</strong><small>Pass rate below this value.</small><input id="thrRed" type="number" min="0" max="100" step="1" value="80"></label>
+      </div>
+    </section>
+
+    <section>
+      <h2>4. Review &amp; apply</h2>
+      <p class="hint">Save &amp; Apply queues the <code class="inl">Reconfigure</code> workflow with the dashboard's stored token. The workflow updates only the <code class="inl">unitTests</code> block and opens a pull request to review. Download/copy options remain available for manual changes.</p>
+      <div class="actions">
+        <button class="primary" id="applyUnitTests" type="button">Save &amp; Apply</button>
+        <a id="wfLink" href="https://github.com/actions/workflows/reconfigure.yml" target="_blank" rel="noopener">View workflow</a>
+      </div>
+      <div class="status" id="applyStatus"></div>
+      <div class="tokpanel" id="tokPanel" hidden>
+        <div id="tokMsg">Applying needs a fine-grained token with <strong>Actions: Read and write</strong> for this repository.</div>
+        <a id="tokCreate" href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">Create a token</a>
+        <input id="tokInput" type="password" placeholder="github_pat_..." autocomplete="off" spellcheck="false">
+        <button class="primary" id="tokSave" type="button">Save &amp; apply</button>
+      </div>
       <div class="actions">
         <button class="primary" id="dlYaml">Download labview-ci.yml</button>
         <span class="status" id="dlStatus"></span>
@@ -101,60 +145,167 @@
   (() => {
     "use strict";
     const SOURCE_FALLBACK = { repo: "elijah286/MAL-Framework-API", ref: "main" };
+    const TOK_KEY = "lvci_dispatch_token";
 
     // Framework catalog for this page. `soon` tools render a disabled tab.
     const TOOLS = [
       { id: "caraya",    name: "Caraya",
         conv: "Caraya tests are <b>VIs that contain Caraya assertions</b> (e.g. <code>Assert Equal.vi</code>). The runner executes every such VI found within the locations below.",
         ph: "e.g. tests/  or  **/*Tests.vi" },
+      { id: "lunit",     name: "LUnit",
+        conv: "LUnit (Astemes) tests are <b>Test Case classes</b> (<code>.lvclass</code> inheriting from LUnit's Test Case). The runner invokes the native <code>LabVIEWCLI -OperationName LUnit</code> operation, which discovers and runs every Test Case within the locations below.",
+        ph: "e.g. tests/  or  source/**/*.lvclass" },
       { id: "vi-tester", name: "VI Tester",
         conv: "VI Tester tests are <b>TestCase classes</b> (<code>.lvclass</code> inheriting from <code>TestCase</code>). The runner discovers and runs every TestCase within the locations below.",
         ph: "e.g. tests/  or  source/**/*.lvclass" },
       { id: "utf",       name: "Unit Test Framework",
-        conv: "NI Unit Test Framework tests are <code>.lvtest</code> files inside a project, each targeting one VI. Point the runner at the folder (or the <code>.lvproj</code>) that holds them; it runs every <code>.lvtest</code> in that project headlessly and reports pass/fail.",
-        ph: "e.g. tests/  or  source/Tests/MyTests.lvproj" },
+        conv: "NI Unit Test Framework tests are <code>.lvtest</code> files inside a project, each targeting one VI. By default CI runs every project it finds; switch to choosing specific projects above if you want to control exactly which <code>.lvproj</code> run. The runner opens each project headlessly and runs every <code>.lvtest</code> it contains, reporting pass/fail.",
+        ph: "e.g. tests/  or  source/**" },
     ];
     const DEFAULTS = () => TOOLS.reduce((o,t)=>(o[t.id]={enabled:false,locations:[]},o),{});
+    const DEFAULT_THRESHOLDS = () => ({ passedPercent: { greenAtLeast: 100, yellowAtLeast: 80, redBelow: 80 } });
 
     let state = DEFAULTS();
+    let thresholds = DEFAULT_THRESHOLDS();
     let activeTab = "caraya";
+    let discoveredProjects = [];   // .lvproj paths at the configured ref (UTF tab)
+    let utfExplicit = false;       // false = "run every project"; true = pick specific projects
+    let utfProjLoaded = false;     // discovered the ref's projects yet?
+    let utfRevisions = [];         // [{sha, short, msg}] recent commits for the revision picker
+    let utfRevsLoaded = false;
+    let utfRevSha = "";            // selected revision in explicit mode ("" = latest / configured ref)
+    const utfRevProjects = {};     // cache: sha -> sorted .lvproj path list
 
     const $ = (id) => document.getElementById(id);
     const rawUrl = (repo, ref, path) => `https://raw.githubusercontent.com/${repo}/${ref}/${path}`;
     async function fetchText(u){ const r=await fetch(u,{cache:"no-store"}); if(!r.ok) throw new Error("HTTP "+r.status); return r.text(); }
 
+    // Best-effort discovery of the repo's .lvproj projects for the UTF tab
+    // (silent on failure / rate-limit). Tooling/build dirs are excluded so only
+    // real project files surface. Uses the dashboard token if present for a
+    // higher rate limit. The configured ref's list is cached under key "".
+    const ghHeaders = ()=>{ const h={ "Accept":"application/vnd.github+json" }; const t=token(); if (t) h["Authorization"]="Bearer "+t; return h; };
+    const isToolingPath = (p)=>/^(\.github|ci-out|build)\//i.test(p);
+    const lvprojsFromTree = (data)=>(data && data.tree || [])
+      .filter(t=>t.type==="blob" && /\.lvproj$/i.test(t.path) && !isToolingPath(t.path))
+      .map(t=>t.path).sort((a,b)=>a.localeCompare(b));
+    function utfProjectsForRev(){ return utfRevSha ? (utfRevProjects[utfRevSha] || []) : discoveredProjects; }
+
+    async function discoverProjects(repo, ref){
+      if (utfProjLoaded) { renderPanels(); update(); return; }
+      utfProjLoaded = true;
+      try{
+        if (!repo || !repo.includes("/")) return;
+        const url = "https://api.github.com/repos/" + repo + "/git/trees/" + encodeURIComponent(ref || "main") + "?recursive=1";
+        const r = await fetch(url, { headers: ghHeaders(), cache:"no-store" });
+        if (!r.ok) { utfProjLoaded = false; return; }
+        discoveredProjects = lvprojsFromTree(await r.json());
+        utfRevProjects[""] = discoveredProjects;
+        renderPanels(); update();
+      }catch(_){ utfProjLoaded = false; }
+    }
+
+    // Explicit mode: load recent revisions so the user can reach a project that
+    // only exists in an older revision (one tree fetch per chosen revision).
+    async function ensureUtfRevisions(){
+      if (utfRevsLoaded) return;
+      utfRevsLoaded = true;
+      const repo = $("repo").value, ref = $("branch").value || "main";
+      try{
+        if (!repo.includes("/")) return;
+        const url = "https://api.github.com/repos/" + repo + "/commits?sha=" + encodeURIComponent(ref) + "&per_page=100";
+        const r = await fetch(url, { headers: ghHeaders(), cache:"no-store" });
+        if (!r.ok) { utfRevsLoaded = false; return; }
+        const data = await r.json();
+        utfRevisions = (Array.isArray(data) ? data : []).map(c=>({
+          sha: c.sha,
+          short: (c.sha || "").slice(0,7),
+          msg: ((c.commit && c.commit.message || "").split("\n")[0]).slice(0,56)
+        }));
+        renderPanels(); update();
+      }catch(_){ utfRevsLoaded = false; }
+    }
+
+    async function loadUtfRevProjects(repo, sha){
+      if (!sha) { renderPanels(); update(); return; }              // "" -> discoveredProjects
+      if (utfRevProjects[sha]) { renderPanels(); update(); return; }
+      try{
+        if (!repo.includes("/")) return;
+        const url = "https://api.github.com/repos/" + repo + "/git/trees/" + encodeURIComponent(sha) + "?recursive=1";
+        const r = await fetch(url, { headers: ghHeaders(), cache:"no-store" });
+        utfRevProjects[sha] = r.ok ? lvprojsFromTree(await r.json()) : [];
+      }catch(_){ utfRevProjects[sha] = []; }
+      renderPanels(); update();
+    }
+
     // ---- minimal labview-ci.yml unitTests parser (our own simple format) -----
-    // Reads the `unitTests:` block: per-tool `enabled:` + `locations:` list.
+    // Reads the `unitTests:` block: per-tool `enabled:` + `locations:` list, plus
+    // the optional pass-rate threshold policy that colours the failed-% badge.
     function parseUnitTests(text){
-      const out = DEFAULTS();
+      const tools = DEFAULTS();
+      const parsedThresholds = DEFAULT_THRESHOLDS();
       const lines = text.split(/\r?\n/);
       let i = 0;
       // find top-level "unitTests:"
       while (i < lines.length && !/^unitTests:\s*$/.test(lines[i])) i++;
-      if (i >= lines.length) return out;
+      if (i >= lines.length) return { tools, thresholds: parsedThresholds };
       i++;
-      let tool = null, inLocs = false;
+      let tool = null, inLocs = false, inTools = false, inThresholds = false, inPassed = false;
       for (; i < lines.length; i++){
         const line = lines[i];
         if (/^\S/.test(line)) break;                       // dedent to top level → done
         let m;
-        if ((m = line.match(/^\s{4,6}([A-Za-z0-9_\-]+):\s*$/)) && /^\s{4}\S/.test(line)){
-          tool = out[m[1]] ? m[1] : null; inLocs = false; continue;
+        if (/^\s{2}tools:\s*$/.test(line)){ inTools = true; inThresholds = false; tool = null; inLocs = false; continue; }
+        if (/^\s{2}thresholds:\s*$/.test(line)){ inThresholds = true; inTools = false; tool = null; inLocs = false; continue; }
+        if (inThresholds){
+          if (/^\s{4}(passedPercent|passPercent|passRate):\s*$/.test(line)){ inPassed = true; continue; }
+          if (inPassed && (m = line.match(/^\s{6}(greenAtLeast|yellowAtLeast|redBelow):\s*([^#\s]+)/))){
+            parsedThresholds.passedPercent[m[1]] = clampPct(m[2], parsedThresholds.passedPercent[m[1]]); continue;
+          }
+          if (/^\s{0,5}\S/.test(line)) inPassed = false;
+        }
+        if (inTools && (m = line.match(/^\s{4}([A-Za-z0-9_\-]+):\s*$/))){
+          tool = tools[m[1]] ? m[1] : null; inLocs = false; continue;
         }
         if (tool){
-          if ((m = line.match(/^\s{6,}enabled:\s*(true|false)/))){ out[tool].enabled = m[1]==="true"; inLocs=false; continue; }
-          if (/^\s{6,}locations:\s*\[\s*\]/.test(line)){ out[tool].locations=[]; inLocs=false; continue; }
-          if (/^\s{6,}locations:\s*$/.test(line)){ inLocs=true; out[tool].locations=[]; continue; }
-          if (inLocs && (m = line.match(/^\s{8,}-\s*["']?([^"'\n]+?)["']?\s*$/))){ out[tool].locations.push(m[1]); continue; }
+          if ((m = line.match(/^\s{6,}enabled:\s*(true|false)/))){ tools[tool].enabled = m[1]==="true"; inLocs=false; continue; }
+          if (/^\s{6,}locations:\s*\[\s*\]/.test(line)){ tools[tool].locations=[]; inLocs=false; continue; }
+          if (/^\s{6,}locations:\s*$/.test(line)){ inLocs=true; tools[tool].locations=[]; continue; }
+          if (inLocs && (m = line.match(/^\s{8,}-\s*["']?([^"'\n]+?)["']?\s*$/))){ tools[tool].locations.push(m[1]); continue; }
           if (inLocs && /^\s{6}\S/.test(line)) inLocs=false;
         }
       }
+      return { tools, thresholds: normalizeThresholds(parsedThresholds) };
+    }
+
+    function clampPct(value, fallback){
+      const n = Math.round(Number(value));
+      return Number.isFinite(n) ? Math.max(0, Math.min(100, n)) : fallback;
+    }
+    function normalizeThresholds(src){
+      const cur = src && src.passedPercent || {};
+      const out = DEFAULT_THRESHOLDS();
+      out.passedPercent.greenAtLeast = clampPct(cur.greenAtLeast, out.passedPercent.greenAtLeast);
+      out.passedPercent.yellowAtLeast = clampPct(cur.yellowAtLeast, out.passedPercent.yellowAtLeast);
+      out.passedPercent.redBelow = clampPct(cur.redBelow, out.passedPercent.redBelow);
+      out.passedPercent.greenAtLeast = Math.max(out.passedPercent.greenAtLeast, out.passedPercent.yellowAtLeast);
+      out.passedPercent.redBelow = Math.min(out.passedPercent.redBelow, out.passedPercent.yellowAtLeast);
       return out;
     }
 
     // ---- YAML generation -----------------------------------------------------
     function genBlock(){
-      const lines = ["unitTests:", "  tools:"];
+      thresholds = normalizeThresholds(thresholds);
+      const p = thresholds.passedPercent;
+      const lines = [
+        "unitTests:",
+        "  thresholds:",
+        "    passedPercent:",
+        `      greenAtLeast: ${p.greenAtLeast}`,
+        `      yellowAtLeast: ${p.yellowAtLeast}`,
+        `      redBelow: ${p.redBelow}`,
+        "  tools:"
+      ];
       for (const t of TOOLS){
         const s = state[t.id];
         lines.push(`    ${t.id}:`);
@@ -202,20 +353,59 @@
     function renderPanels(){
       $("panels").innerHTML = TOOLS.map(t=>{
         const s = state[t.id];
-        const locs = s.locations && s.locations.length ? s.locations : [""];
-        const locRows = t.soon ? "" : `
-          <label class="fl">Test locations <span style="text-transform:none">(project folders or globs; blank = whole project)</span></label>
+        const allLocs = s.locations || [];
+        const isProj = (p)=>/\.lvproj$/i.test(String(p==null?"":p).trim());
+        // For UTF the .lvproj entries are managed by the project checkboxes; the
+        // free-text rows below are for folders/globs only. Indices stay absolute
+        // into s.locations so the input/remove handlers keep working.
+        const textIdx = allLocs.map((_,i)=>i).filter(i=>!(t.id==="utf" && isProj(allLocs[i])));
+        const rowIdx = textIdx.length ? textIdx : [allLocs.length];
+        const locLabel = t.id==="utf"
+          ? 'Other test locations <span style="text-transform:none">(folders or globs; blank = whole project)</span>'
+          : 'Test locations <span style="text-transform:none">(project folders or globs; blank = whole project)</span>';
+        const locRows = (t.soon || (t.id==="utf" && !utfExplicit)) ? "" : `
+          <label class="fl">${locLabel}</label>
           <div class="locs" id="locs-${t.id}">
-            ${locs.map((l,idx)=>`<div class="loc">
-              <input type="text" value="${esc(l)}" placeholder="${esc(t.ph)}" data-tool="${t.id}" data-idx="${idx}">
+            ${rowIdx.map(idx=>`<div class="loc">
+              <input type="text" value="${esc(allLocs[idx])}" placeholder="${esc(t.ph)}" data-tool="${t.id}" data-idx="${idx}">
               <button data-rm="${t.id}" data-idx="${idx}" title="Remove">✕</button></div>`).join("")}
           </div>
           <button class="addloc" data-add="${t.id}">+ Add location</button>`;
+        const projRows = (t.id!=="utf" || t.soon) ? "" : (()=>{
+          const runAllRow = `
+          <label class="enable" style="margin:8px 0 4px"><input type="checkbox" id="utf-runall" ${utfExplicit?"":"checked"}><span class="nm">Run every LabVIEW project found in each revision</span></label>
+          <div class="projnote" style="margin-top:0">CI discovers and runs every <code>.lvproj</code> that contains tests in whatever revision is being tested &mdash; so re-running an older revision runs the projects it had then, and new projects are picked up automatically. Uncheck to choose specific projects instead.</div>`;
+          if (!utfExplicit) return runAllRow;
+
+          const revProjects = utfProjectsForRev();
+          const selectedProjs = allLocs.filter(isProj).map(p=>String(p).trim());
+          const universe = Array.from(new Set([].concat(revProjects, selectedProjs))).sort((a,b)=>a.localeCompare(b));
+          const checked = (p)=>selectedProjs.indexOf(p)>=0;
+          const inRev = (p)=>revProjects.indexOf(p)>=0;
+          const revOpts = '<option value=""' + (utfRevSha==="" ? " selected" : "") + '>Latest revision</option>'
+            + utfRevisions.map(r=>`<option value="${esc(r.sha)}" ${r.sha===utfRevSha?"selected":""}>${esc(r.short)} - ${esc(r.msg)}</option>`).join("");
+          const rows = universe.length
+            ? universe.map(p=>`<label class="proj">
+                <input type="checkbox" data-proj="${esc(p)}" ${checked(p)?"checked":""}>
+                <code>${esc(p)}</code>
+                ${inRev(p)?"":'<span class="projmiss">not in this revision</span>'}</label>`).join("")
+            : '<div class="projnone">No <code>.lvproj</code> files in this revision. Pick another revision above, or add a path under "Other test locations".</div>';
+          const warn = selectedProjs.length ? "" : '<div class="projwarn">Nothing selected yet &mdash; until you tick a project, CI runs <b>every</b> project (same as the option above).</div>';
+          return `
+          ${runAllRow}
+          <label class="fl">Show projects from revision <span style="text-transform:none">(pick an older revision to select a project that is no longer in the latest)</span></label>
+          <select id="utf-rev" class="revsel">${revOpts}</select>
+          <label class="fl">Projects to run <span style="text-transform:none">(only ticked projects run; each is skipped in revisions that lack it)</span></label>
+          <div class="projs" id="projs-utf">${rows}</div>
+          ${warn}
+          <div class="projnote">Only the projects you tick are run, in any revision where they exist. New projects added in future revisions are <b>not</b> run until you tick them &mdash; turn "Run every project" back on to include everything automatically.</div>`;
+        })();
         const enableRow = t.soon
           ? `<div class="disablednote">Headless ${esc(t.name)} support is coming soon — this tab is a placeholder so it's ready to enable later.</div>`
           : `<label class="enable"><input type="checkbox" data-en="${t.id}" ${s.enabled?"checked":""}><span class="nm">Run ${esc(t.name)} in CI</span></label>`;
         return `<div class="panel ${t.id===activeTab?"active":""}" id="panel-${t.id}">
           ${enableRow}
+          ${projRows}
           ${locRows}
           <div class="conv">${t.conv}</div>
         </div>`;
@@ -233,10 +423,107 @@
       $("panels").querySelectorAll("button[data-add]").forEach(b=>b.addEventListener("click",()=>{
         state[b.dataset.add].locations.push(""); renderPanels(); update();
       }));
+      // UTF project checkboxes toggle the .lvproj path in the tool's locations.
+      $("panels").querySelectorAll("input[data-proj]").forEach(cb=>cb.addEventListener("change",()=>{
+        const p = cb.dataset.proj;
+        const locs = state.utf.locations = (state.utf.locations || []);
+        const i = locs.findIndex(l=>String(l==null?"":l).trim()===p);
+        if (cb.checked){ if (i<0) locs.push(p); }
+        else if (i>=0){ locs.splice(i,1); }
+        renderPanels(); update();
+      }));
+      // UTF "run every project" toggle: checked = empty locations (runtime runs all).
+      const utfRunAll = $("utf-runall");
+      if (utfRunAll) utfRunAll.addEventListener("change",()=>{
+        if (utfRunAll.checked){ state.utf.locations = []; utfExplicit = false; }
+        else { utfExplicit = true; discoverProjects($("repo").value, $("branch").value); ensureUtfRevisions(); }
+        renderTabs(); renderPanels(); update();
+      });
+      // UTF revision picker: load the chosen revision's .lvproj files.
+      const utfRev = $("utf-rev");
+      if (utfRev) utfRev.addEventListener("change",()=>{
+        utfRevSha = utfRev.value;
+        loadUtfRevProjects($("repo").value, utfRevSha);
+      });
     }
     function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
     function update(){ $("blockPreview").textContent = genBlock(); }
+
+    function renderThresholds(){
+      thresholds = normalizeThresholds(thresholds);
+      const p = thresholds.passedPercent;
+      $("thrGreen").value = p.greenAtLeast;
+      $("thrYellow").value = p.yellowAtLeast;
+      $("thrRed").value = p.redBelow;
+    }
+
+    function unitTestsInput(){
+      const tools = {};
+      for (const t of TOOLS){
+        const s = state[t.id] || { enabled:false, locations:[] };
+        tools[t.id] = { enabled: !!s.enabled, locations: (s.locations||[]).map(x=>x.trim()).filter(Boolean) };
+      }
+      thresholds = normalizeThresholds(thresholds);
+      return JSON.stringify({ tools, thresholds });
+    }
+
+    function workflowUrl(){
+      const repo = $("repo").value;
+      return repo.includes("/") ? "https://github.com/" + repo + "/actions/workflows/reconfigure.yml" : "https://github.com/actions/workflows/reconfigure.yml";
+    }
+    function token(){ try { return localStorage.getItem(TOK_KEY) || ""; } catch (_) { return ""; } }
+    function tokenUrl(){
+      const repo = $("repo").value;
+      const owner = (repo.split("/")[0]) || "";
+      const qp = new URLSearchParams();
+      qp.set("name", "LabVIEW CI dispatch");
+      qp.set("description", "Dispatch LabVIEW CI configuration changes for " + repo);
+      if (owner) qp.set("target_name", owner);
+      qp.set("actions", "write");
+      return "https://github.com/settings/personal-access-tokens/new?" + qp.toString();
+    }
+    function setApplyStatus(html, kind){
+      const st = $("applyStatus"); if (!st) return;
+      st.innerHTML = html || "";
+      st.className = "status" + (kind ? " " + kind : "");
+    }
+    function showTokenPanel(msg){
+      const p = $("tokPanel"); if (!p) return;
+      const m = $("tokMsg"); if (m) m.innerHTML = msg || "Applying needs a fine-grained token with <strong>Actions: Read and write</strong> for this repository.";
+      const a = $("tokCreate"); if (a) a.href = tokenUrl();
+      p.hidden = false;
+      const inp = $("tokInput"); if (inp) inp.focus();
+    }
+    function hideTokenPanel(){ const p = $("tokPanel"); if (p) p.hidden = true; }
+    async function dispatchReconfigure(){
+      const repo = $("repo").value, ref = $("branch").value || "main";
+      if (!repo.includes("/")){ setApplyStatus("Choose a repository before applying.", "err"); return; }
+      if (!token()){ showTokenPanel(); setApplyStatus("Paste a token to queue the Reconfigure workflow."); return; }
+      const btn = $("applyUnitTests");
+      if (btn){ btn.disabled = true; btn.textContent = "Queuing..."; }
+      setApplyStatus("Queuing the Reconfigure workflow...");
+      try{
+        const r = await fetch("https://api.github.com/repos/" + repo + "/actions/workflows/reconfigure.yml/dispatches", {
+          method: "POST",
+          headers: { "Authorization": "Bearer " + token(), "Accept": "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28", "Content-Type": "application/json" },
+          body: JSON.stringify({ ref, inputs: { unit_tests: unitTestsInput() } })
+        });
+        if (btn){ btn.disabled = false; btn.textContent = "Save & Apply"; }
+        if (r.status === 204){
+          hideTokenPanel();
+          setApplyStatus("Queued Reconfigure. It will open a pull request when the settings file is updated. <a href=\"" + workflowUrl() + "\" target=\"_blank\" rel=\"noopener\">View runs</a>.", "ok");
+          return;
+        }
+        if (r.status === 401){ try { localStorage.removeItem(TOK_KEY); } catch (_) {} showTokenPanel("That token was rejected. Paste a valid fine-grained token with <strong>Actions: Read and write</strong> for this repository."); setApplyStatus("Token rejected (401).", "err"); return; }
+        if (r.status === 403){ showTokenPanel("The saved token cannot dispatch workflows here. Grant <strong>Actions: Read and write</strong> for <code class=\"inl\">" + esc(repo) + "</code>."); setApplyStatus("Dispatch forbidden (403).", "err"); return; }
+        if (r.status === 404){ showTokenPanel("The saved token cannot see <code class=\"inl\">" + esc(repo) + "</code>, or this repo does not have <code class=\"inl\">reconfigure.yml</code> installed."); setApplyStatus("Workflow not found or repo not accessible (404).", "err"); return; }
+        setApplyStatus("Dispatch failed (HTTP " + r.status + ").", "err");
+      }catch(e){
+        if (btn){ btn.disabled = false; btn.textContent = "Save & Apply"; }
+        setApplyStatus("Network error: " + esc(String(e && e.message || e)), "err");
+      }
+    }
 
     function download(name, text){
       const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([text],{type:"text/plain"}));
@@ -259,19 +546,40 @@
       try{
         loadedYaml = await fetchText(rawUrl(repo, ref, ".github/labview-ci.yml"));
         const parsed = parseUnitTests(loadedYaml);
-        for (const t of TOOLS) if (parsed[t.id]) state[t.id] = parsed[t.id];
+        for (const t of TOOLS) if (parsed.tools[t.id]) state[t.id] = parsed.tools[t.id];
+        thresholds = parsed.thresholds;
         st.className="status ok"; st.textContent = `Loaded current settings from ${repo}@${ref}.`;
       }catch(_){
         st.className="status"; st.textContent = "No existing config found — showing defaults to download & commit.";
       }
+      // UTF mode follows the saved config: any explicit project/location -> explicit mode.
+      const utfLocs = ((state.utf && state.utf.locations) || []).map(x=>String(x).trim()).filter(Boolean);
+      utfExplicit = utfLocs.length > 0;
+      utfRevSha = "";
       renderTabs(); renderPanels(); update();
+      if (utfExplicit){ discoverProjects(repo, ref); ensureUtfRevisions(); }
     }
 
     (function init(){
       const t = detectTarget();
       $("repo").value=t.repo; $("branch").value=t.ref;
       $("repoLabel").textContent=t.repo; $("branchLabel").textContent=t.ref;
-      renderTabs(); renderPanels(); update();
+      const wf = $("wfLink"); if (wf) wf.href = workflowUrl();
+      renderTabs(); renderPanels(); renderThresholds(); update();
+      ["thrGreen", "thrYellow", "thrRed"].forEach(id => $(id).addEventListener("change", () => {
+        thresholds.passedPercent.greenAtLeast = clampPct($("thrGreen").value, thresholds.passedPercent.greenAtLeast);
+        thresholds.passedPercent.yellowAtLeast = clampPct($("thrYellow").value, thresholds.passedPercent.yellowAtLeast);
+        thresholds.passedPercent.redBelow = clampPct($("thrRed").value, thresholds.passedPercent.redBelow);
+        renderThresholds(); update();
+      }));
+      $("applyUnitTests").addEventListener("click", dispatchReconfigure);
+      $("tokSave").addEventListener("click", () => {
+        const inp = $("tokInput"); const v = (inp && inp.value || "").trim();
+        if (!v){ if (inp) inp.focus(); return; }
+        try { localStorage.setItem(TOK_KEY, v); } catch (_) {}
+        dispatchReconfigure();
+      });
+      $("tokInput").addEventListener("keydown", (e) => { if (e.key === "Enter"){ e.preventDefault(); $("tokSave").click(); } });
       $("dlYaml").addEventListener("click", ()=>{ download("labview-ci.yml", genFullYaml()); const s=$("dlStatus"); s.className="status ok"; s.textContent="labview-ci.yml downloaded — place at .github/labview-ci.yml"; });
       $("copyBlock").addEventListener("click", async ()=>{ try{ await navigator.clipboard.writeText(genBlock()); $("copyBlock").textContent="Copied!"; setTimeout(()=>$("copyBlock").textContent="Copy",1400);}catch(_){} });
       loadCurrent(t.repo, t.ref).catch(()=>{});

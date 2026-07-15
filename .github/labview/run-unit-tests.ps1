@@ -12,8 +12,10 @@
     g-cli (already baked into the CI image), writing JUnit XML.
 
     Caraya is the reference implementation, driven via g-cli. NI UTF runs through the
-    built-in LabVIEWCLI RunUnitTests operation (see Invoke-UtfTests); JKI VI Tester is
-    scaffolded with the same contract. The exact command for each tool is a per-tool
+    built-in LabVIEWCLI RunUnitTests operation (see Invoke-UtfTests); LUnit (Astemes)
+    runs through the native LabVIEWCLI "LUnit" operation the same way (see
+    Invoke-LUnitTests); JKI VI Tester is scaffolded with the same contract. The exact
+    command for each tool is a per-tool
     template that can be overridden from the config (`command:` key) so the precise
     invocation can be corrected on a real worker without editing this script.
 
@@ -107,6 +109,31 @@ function Show-UtfAddonsDiag([string]$LvPath) {
             Get-ChildItem -LiteralPath $rk -ErrorAction SilentlyContinue | ForEach-Object { Write-Host "    subkey: $($_.PSChildName)" }
         }
     }
+    # The -350053 error names the LabVIEW CLI "operation folder" as the place with
+    # "missing or bad files". Dump it so we can see whether the RunUnitTests operation
+    # is actually present for this LabVIEW (the UTF version-independent add-on is
+    # supposed to register it); a missing/broken RunUnitTests operation here is the
+    # real cause of -350053, independent of any VIPM package.
+    Write-Host '----- LabVIEW CLI operation folders -----'
+    foreach ($op in @('C:\Program Files (x86)\National Instruments\Shared\LabVIEW CLI\Operations',
+                      'C:\Program Files\National Instruments\Shared\LabVIEW CLI\Operations')) {
+        if (Test-Path -LiteralPath $op) {
+            Write-Host "OPERATIONS ROOT: $op"
+            Get-ChildItem -LiteralPath $op -Recurse -ErrorAction SilentlyContinue |
+                Select-Object -First 200 | ForEach-Object { Write-Host "  $($_.FullName)" }
+        } else {
+            Write-Host "absent: $op"
+        }
+    }
+    # Where does the UTF add-on keep its RunUnitTests CLI operation, if anywhere?
+    foreach ($addon in @('C:\Program Files\NI\LVAddons\utf64\1','C:\Program Files\NI\LVAddons\utf32\1')) {
+        if (Test-Path -LiteralPath $addon) {
+            $hits = @(Get-ChildItem -LiteralPath $addon -Recurse -ErrorAction SilentlyContinue |
+                Where-Object { $_.Name -match '(?i)run.?unit.?test|unit.?test.*\.(vi|lvclass)$|cli' })
+            Write-Host ("UTF add-on '{0}': {1} CLI/RunUnitTests-ish file(s)" -f $addon, $hits.Count)
+            $hits | Select-Object -First 50 | ForEach-Object { Write-Host "  $($_.FullName)" }
+        }
+    }
     Write-Host '===== end diagnostic ====='
 }
 
@@ -161,15 +188,26 @@ function Resolve-LabVIEWCLI([string]$LabVIEWExePath) {
     return $null
 }
 
+function Resolve-LabVIEWPort([string]$LabVIEWExePath) {
+    $ini = Join-Path (Split-Path -Parent $LabVIEWExePath) 'LabVIEW.ini'
+    if (Test-Path -LiteralPath $ini) {
+        $m = Select-String -LiteralPath $ini -Pattern '^server\.tcp\.port\s*=\s*(\d+)\s*$' -ErrorAction SilentlyContinue | Select-Object -First 1
+        if ($m -and $m.Matches.Count -gt 0) { return [int]$m.Matches[0].Groups[1].Value }
+    }
+    return 3363
+}
+
 $LabVIEWPath = Resolve-LabVIEWPath $LabVIEWPath
 Sync-PathFromRegistry
 $GCli        = Resolve-Cmd @('g-cli', 'g-cli.exe')
 $CliExe      = Resolve-LabVIEWCLI $LabVIEWPath
+$LabVIEWPort = Resolve-LabVIEWPort $LabVIEWPath
 
 Write-Host "=== Unit Tests (Windows) ==="
 Write-Host "  Workspace : $WorkspaceRoot"
 Write-Host "  Results   : $ResultsDir"
 Write-Host "  LabVIEW   : $LabVIEWPath  (v$LabVIEWVersion)"
+Write-Host "  VI Server : $LabVIEWPort"
 Write-Host "  LabVIEWCLI: $(if ($CliExe) { $CliExe } else { '<not found>' })"
 Write-Host "  g-cli     : $(if ($GCli) { $GCli } else { '<not found on PATH>' })"
 Write-Host "  Config    : $ConfigPath"
@@ -273,6 +311,17 @@ $DEFAULT_CMD = @{
 # Tokens: {cli}=LabVIEWCLI, {lv}=LabVIEW.exe, {proj}=.lvproj path, {out}=JUnit output
 # path, {ver}=LabVIEW year. Override per tool with the config `command:` key.
 $UTF_DEFAULT_CMD = '"{cli}" -LogToConsole TRUE -OperationName RunUnitTests -ProjectPath "{proj}" -JUnitReportPath "{out}" -LabVIEWPath "{lv}" -Headless'
+
+# LUnit (Astemes' xUnit-style framework) is driven the SAME WAY as NI UTF: through
+# the native LabVIEW CLI, not g-cli. Its `astemes_lib_lunit_cli` package registers
+# the "LUnit" operation, which discovers Test Case classes under -Path and writes a
+# JUnit report when -ReportPath ends in .xml. Unlike UTF, -Path accepts a directory
+# (or project/class/library), so LUnit resolves test-root DIRECTORIES like the
+# g-cli tools rather than .lvproj files. -Headless is required on LabVIEW 2026
+# Windows containers (same constraint as UTF / VI Analyzer). Tokens: {cli}=LabVIEWCLI,
+# {lv}=LabVIEW.exe, {dir}=a resolved test-root directory, {out}=JUnit output path,
+# {ver}=LabVIEW year. Override per tool with the config `command:` key.
+$LUNIT_DEFAULT_CMD = '"{cli}" -LogToConsole TRUE -OperationName LUnit -Path "{dir}" -ReportPath "{out}" -LabVIEWPath "{lv}" -Headless'
 
 function Invoke-Tool($tool, [int]$index) {
     $id   = $tool.tool
@@ -386,6 +435,21 @@ function Invoke-UtfTests($tool, [int]$index) {
             } else {
                 Write-Host "  [utf] (no CLI session-log path found in output)"
             }
+            # DIAGNOSTIC PROBE: re-run the SAME operation WITHOUT -JUnitReportPath. If it
+            # then loads/succeeds, the -350053 is specific to the JUnit-report step (its
+            # VIs), not the operation; if it still fails, the RunUnitTests operation cannot
+            # load at all in this LabVIEW. Output-only; does not affect the report.
+            $cmdNoJUnit = $tmpl.Replace('{cli}', $CliExe).Replace('{lv}', $LabVIEWPath).Replace('{proj}', $proj).Replace('{out}', $out).Replace('{ver}', $LabVIEWVersion)
+            $cmdNoJUnit = $cmdNoJUnit -replace '\s*-JUnitReportPath\s+"[^"]*"', ''
+            Write-Host "  [utf][diag] retry WITHOUT -JUnitReportPath:"
+            Write-Host "  [utf][diag] $cmdNoJUnit"
+            $prevEAP2 = $ErrorActionPreference; $ErrorActionPreference = 'Continue'
+            try {
+                $diagOut = (& cmd.exe /c $cmdNoJUnit 2>&1 | Out-String)
+                Write-Host $diagOut
+                Write-Host ("  [utf][diag] exit={0}" -f $LASTEXITCODE)
+            } catch { Write-Warning "  [utf][diag] runner error: $($_.Exception.Message)" }
+            $ErrorActionPreference = $prevEAP2
             # Record that UTF could not run, so the report shows the shared
             # "missing container tooling" banner. -350053 / "missing or bad files"
             # / "required modules or toolkits" => the UTF toolkit is absent.
@@ -395,6 +459,81 @@ function Invoke-UtfTests($tool, [int]$index) {
                     Add-ToolingIssue 'utf' 'NI Unit Test Framework' 'missing-tooling' 'The NI Unit Test Framework toolkit is not installed in this container, so the LabVIEW CLI RunUnitTests operation could not load (error -350053).'
                 } else {
                     Add-ToolingIssue 'utf' 'NI Unit Test Framework' 'error' 'The RunUnitTests operation produced no JUnit output.'
+                }
+            }
+        }
+        $i++
+    }
+}
+
+# -- LUnit (Astemes) ----------------------------------------------------------
+# LUnit tests are Test Case classes (.lvclass) discovered under a directory or
+# project. We resolve the tool's locations to test-root DIRECTORIES (empty =
+# whole project) and run the native LabVIEWCLI "LUnit" operation against each,
+# writing one JUnit XML per root. Mirrors Invoke-UtfTests' diagnostics: it echoes
+# the LabVIEW CLI session log on failure and records a missing-tooling finding so
+# a worker without the astemes_lib_lunit_cli package surfaces the shared
+# "missing container tooling" banner (instead of a bare "no tests found").
+function Invoke-LUnitTests($tool, [int]$index) {
+    $id = $tool.tool
+    Write-Host "--- tool: $id (LUnit) ---"
+    if (-not $CliExe) { Write-Warning "  LabVIEWCLI not found; cannot run LUnit."; return }
+
+    $locs  = @($tool.locations | Where-Object { $_ -and $_.Trim() })
+    $roots = if ($locs.Count -gt 0) { Resolve-TestRoots $locs } else { @($WorkspaceRoot) }
+    if ($roots.Count -eq 0) {
+        Write-Warning "  no test locations resolved for '$id' (locations: $($tool.locations -join ', ')) - skipping."
+        return
+    }
+
+    $tmpl = if ($tool.command) { $tool.command } else { $LUNIT_DEFAULT_CMD }
+
+    $i = 0
+    foreach ($dir in $roots) {
+        $out = Join-Path $ResultsDir ("lunit-{0}.xml" -f ($index * 100 + $i))
+        Write-Host "  [lunit] path: $dir"
+
+        $cmd = $tmpl.Replace('{cli}', $CliExe).Replace('{lv}', $LabVIEWPath).Replace('{dir}', $dir).Replace('{out}', $out).Replace('{ver}', $LabVIEWVersion)
+        Write-Host "  [lunit] $cmd"
+
+        $prevEAP = $ErrorActionPreference; $ErrorActionPreference = 'Continue'
+        $cliOut = ''
+        try {
+            $cliOut = (& cmd.exe /c $cmd 2>&1 | Out-String)
+            Write-Host $cliOut
+            Write-Host ("  [lunit] exit={0}" -f $LASTEXITCODE)
+        } catch {
+            Write-Warning "  [lunit] runner error: $($_.Exception.Message)"
+        }
+        $ErrorActionPreference = $prevEAP
+
+        if (Test-Path -LiteralPath $out) { Write-Host "  [lunit] wrote $out" }
+        else {
+            Write-Warning "  [lunit] produced no JUnit at $out (check the LUnit output above; override with the tool's command: key)."
+            # Echo the LabVIEW CLI session log (the console error is generic; the
+            # real detail lives in the CLI's own log), same as Invoke-UtfTests.
+            $m = [regex]::Match($cliOut, '(?i)started logging in file:\s*(.+\.log)')
+            if ($m.Success) {
+                $logPath = $m.Groups[1].Value.Trim()
+                Write-Host "  [lunit] --- LabVIEW CLI session log ($logPath) ---"
+                if (Test-Path -LiteralPath $logPath) {
+                    Get-Content -LiteralPath $logPath | ForEach-Object { Write-Host "  [lunit-log] $_" }
+                } else {
+                    Write-Host "  [lunit] (session log not found on disk)"
+                }
+                Write-Host "  [lunit] --- end LabVIEW CLI session log ---"
+            } else {
+                Write-Host "  [lunit] (no CLI session-log path found in output)"
+            }
+            # -350053 / "missing or bad files" / "required modules or toolkits" =>
+            # the LUnit CLI add-on (astemes_lib_lunit_cli) is not installed in this
+            # container, so the "LUnit" operation could not load.
+            if (-not ($Script:ToolingIssues | Where-Object { $_.tool -eq 'lunit' })) {
+                $missingTooling = ($cliOut -match '350053' -or $cliOut -match 'missing or bad files' -or $cliOut -match 'required modules or toolkits')
+                if ($missingTooling) {
+                    Add-ToolingIssue 'lunit' 'LUnit' 'missing-tooling' 'The LUnit CLI toolkit (astemes_lib_lunit_cli) is not installed in this container, so the LabVIEW CLI LUnit operation could not load (error -350053).'
+                } else {
+                    Add-ToolingIssue 'lunit' 'LUnit' 'error' 'The LUnit operation produced no JUnit output.'
                 }
             }
         }
@@ -415,7 +554,9 @@ Write-Host ""
 
 $idx = 0
 foreach ($t in $tools) {
-    if ($t.tool -eq 'utf') { Invoke-UtfTests $t $idx } else { Invoke-Tool $t $idx }
+    if ($t.tool -eq 'utf') { Invoke-UtfTests $t $idx }
+    elseif ($t.tool -eq 'lunit') { Invoke-LUnitTests $t $idx }
+    else { Invoke-Tool $t $idx }
     $idx++; Write-Host ""
 }
 

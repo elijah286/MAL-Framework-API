@@ -1,4 +1,5 @@
 name: VIDiff Deploy — Pages + PR Comment
+run-name: Deploy VIDiff pages and comment - ${{ github.event_name == 'workflow_dispatch' && 'manual run' || github.sha }}
 
 on:
   workflow_run:
@@ -16,6 +17,17 @@ permissions:
   pages: write
   statuses: write
 
+# Serialize the gh-pages push with the other report deployers. The Windows and
+# Linux VIDiff reports complete near-simultaneously, and each completion fires its
+# own vidiff-deploy run; without a shared group the two push gh-pages at the same
+# instant and the loser bounces with "! [rejected] (fetch first)" (its report never
+# deploys). Sharing report-pages-deploy queues them — and queues vidiff alongside
+# the mass-compile / VI Analyzer / unit-test / Antidoc deploys — instead of racing.
+# cancel-in-progress:false so a queued run still publishes rather than being dropped.
+concurrency:
+  group: report-pages-deploy
+  cancel-in-progress: false
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -23,6 +35,12 @@ jobs:
     if: always()
 
     steps:
+      # Required so the local ./.github/actions/publish-gh-pages composite action
+      # is on disk. Without a checkout the deploy step fails with "Can't find
+      # 'action.yml' … under '.github/actions/publish-gh-pages'".
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
       - name: Download VIDiff artifact
         uses: actions/github-script@v8
         id: artifact
@@ -111,9 +129,8 @@ jobs:
 
       - name: Deploy VIDiff report to GitHub Pages
         if: steps.artifact.outputs.result != 'null'
-        uses: peaceiris/actions-gh-pages@v4.1.0
+        uses: ./.github/actions/publish-gh-pages
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: /tmp/vidiff-report
           # push-SHORT_SHA/windows or pr-NUMBER/linux
           destination_dir: >-
@@ -122,7 +139,6 @@ jobs:
               format('pr-{0}', steps.meta.outputs.pr_number) ||
               format('push-{0}', steps.meta.outputs.head_sha)
             }}/${{ steps.meta.outputs.platform }}
-          keep_files: true
 
       - name: Build report URL
         if: steps.artifact.outputs.result != 'null'
