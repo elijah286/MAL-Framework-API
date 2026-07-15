@@ -1,0 +1,273 @@
+{
+  "schema": 1,
+  "repo": "elijah286/MAL-Framework-API",
+  "sha": "b4a05236f84b2c21ce65274b90fe99859cdc42cb",
+  "revisions": [
+    {
+      "sha": "b4a05236f84b2c21ce65274b90fe99859cdc42cb",
+      "short": "b4a0523",
+      "message": "ci: adopt LabVIEW CI tooling v4.4.10 (full update)",
+      "author": "github-actions[bot]",
+      "date": "2026-07-15T18:29:06Z"
+    },
+    {
+      "sha": "d84fdf8eee23cdaec09233973b452ef404069603",
+      "short": "d84fdf8",
+      "message": "Add LabVIEW CI pipeline",
+      "author": "Elijah Kerry",
+      "date": "2026-06-19T17:34:56Z"
+    },
+    {
+      "sha": "2fcc90d4e225c5a91e3d2ce5e4dfd2ecf4e28e21",
+      "short": "2fcc90d",
+      "message": "Add LabVIEW CI pipeline",
+      "author": "Elijah Kerry",
+      "date": "2026-06-18T22:27:01Z"
+    },
+    {
+      "sha": "95fea8bbad943965008e5a52f640a39d01422428",
+      "short": "95fea8b",
+      "message": "Add LabVIEW CI pipeline",
+      "author": "Elijah Kerry",
+      "date": "2026-06-18T22:07:34Z"
+    },
+    {
+      "sha": "31322a1352e06046cc0083a931c874a2b1984ff3",
+      "short": "31322a1",
+      "message": "Add LabVIEW CI pipeline",
+      "author": "Elijah Kerry",
+      "date": "2026-06-18T18:31:38Z"
+    },
+    {
+      "sha": "1a671fa58f15634a1c21bfcb71650f90257c5b91",
+      "short": "1a671fa",
+      "message": "serializes all data",
+      "author": "elijahkerry",
+      "date": "2018-04-11T03:29:57Z"
+    },
+    {
+      "sha": "d44678b7b7f53b410cc61e5d2d87123b7c9b763d",
+      "short": "d44678b",
+      "message": "successful build",
+      "author": "elijahkerry",
+      "date": "2018-03-07T11:23:45Z"
+    },
+    {
+      "sha": "117b7e543cc04c760ab2062ddb6686a7cf210de2",
+      "short": "117b7e5",
+      "message": "support for config of steps and devices",
+      "author": "elijahkerry",
+      "date": "2018-03-07T04:55:42Z"
+    },
+    {
+      "sha": "ac4151914d38d57bfc8e5bac0b81bb35e417ab31",
+      "short": "ac41519",
+      "message": "Moving over from SVN",
+      "author": "elijah286",
+      "date": "2016-07-25T02:21:51Z"
+    }
+  ],
+  "config": {
+    "use": "",
+    "actions": {},
+    "vipc": [],
+    "dragon": [],
+    "hasVipcList": false,
+    "hasDragonList": false
+  },
+  "vipc": [
+    {
+      "path": ".github/labview/antidoc/antidoc.vipc",
+      "role": "capability",
+      "capability": "antidoc",
+      "tooling": false,
+      "configured": true,
+      "monitored": true,
+      "locked": false,
+      "packages": [
+        "wovalab_lib_antidoc_cli-3.3.0.117"
+      ],
+      "error": ""
+    },
+    {
+      "path": ".github/labview/vipm/ci-tooling.vipc",
+      "role": "core",
+      "capability": "",
+      "tooling": true,
+      "configured": true,
+      "monitored": true,
+      "locked": true,
+      "packages": [
+        "jki_lib_caraya-1.4.4.148",
+        "jki_vi_tester",
+        "ni_lib_utf_junit_report-1.0.1.43",
+        "wovalab_lib_antidoc_cli-3.3.0.117"
+      ],
+      "error": ""
+    },
+    {
+      "path": ".vipc",
+      "role": "project",
+      "capability": "",
+      "tooling": false,
+      "configured": true,
+      "monitored": true,
+      "locked": false,
+      "packages": [
+        "national_instruments_lib_configuration_dialog_actor-1.0.4.20",
+        "national_instruments_lib_guid_generator-1.0.2.2",
+        "national_instruments_lib_msmt_framework_common_components-4.0.4.62",
+        "oglib_appcontrol-4.1.0.7",
+        "oglib_array-4.1.1.14",
+        "oglib_error-4.2.0.23",
+        "oglib_file-4.0.1.22",
+        "oglib_lvdata-4.2.0.21",
+        "oglib_string-4.1.0.12",
+        "oglib_variantconfig-4.0.0.5"
+      ],
+      "error": ""
+    }
+  ],
+  "nipm": [
+    {
+      "name": "LabVIEW",
+      "source": "NI Package Manager",
+      "labview": true,
+      "platforms": [
+        "windows",
+        "linux"
+      ],
+      "details": "LabVIEW runtime and development packages from the NI feeds."
+    },
+    {
+      "name": "VI Analyzer support",
+      "source": "NI Package Manager",
+      "packages": {
+        "windows": [
+          "ni-viawin-labview-support"
+        ],
+        "linux": [
+          "ni-vialin-labview-support"
+        ]
+      },
+      "platforms": [
+        "windows",
+        "linux"
+      ],
+      "details": "NI VI Analyzer support package used by the analyzer runners."
+    },
+    {
+      "name": "NI Unit Test Framework",
+      "source": "NI Package Manager",
+      "packages": {
+        "windows": [
+          "ni-utf-labview-support"
+        ]
+      },
+      "platforms": [
+        "windows"
+      ],
+      "details": "NI UTF support package used by the Windows unit-test runner."
+    },
+    {
+      "name": "JKI Dragon",
+      "source": "NI Package Manager",
+      "packages": {
+        "windows": [
+          "jki-dragon"
+        ]
+      },
+      "platforms": [
+        "windows"
+      ],
+      "details": "JKI Dragon dependency-management tooling installed from the LabVIEW 2026 NI Package Manager feed."
+    },
+    {
+      "name": "VI Package Manager",
+      "source": "NI Package Manager",
+      "packages": {
+        "windows": [
+          "ni-vipm"
+        ]
+      },
+      "platforms": [
+        "windows"
+      ],
+      "details": "NI-published Windows VIPM package that enables VIPC application during worker builds. Linux installs VIPM from the native Debian package during its worker build."
+    }
+  ],
+  "dragon": {
+    "available": false,
+    "column": "winExp",
+    "ready": false,
+    "health": "",
+    "manifest_version": "",
+    "files": [],
+    "install_set": [],
+    "conflicts": []
+  },
+  "system": [
+    {
+      "name": "VI Browser 2.0 toimages runner",
+      "source": "Repository Go code",
+      "path": ".github/labview/toimages/main.go",
+      "details": "Batch runner compiled from repo Go source; Linux uses the toimages GHCR image and Windows builds runner.exe in the workflow.",
+      "platforms": {
+        "windows": {
+          "present": true,
+          "label": "workflow-built"
+        },
+        "linux": {
+          "present": true,
+          "label": "toimages image"
+        }
+      }
+    },
+    {
+      "name": "lvctl render engine",
+      "source": "Repository Go code + embedded VIs",
+      "path": ".github/labview/toimages/_ni/labview/lvctl",
+      "details": "Renderer used by VI Browser 2.0 to drive LabVIEW and emit position-aware frame JSON.",
+      "platforms": {
+        "windows": {
+          "present": true,
+          "label": "workflow-built"
+        },
+        "linux": {
+          "present": true,
+          "label": "toimages image"
+        }
+      }
+    }
+  ],
+  "columns": [
+    {
+      "key": "windows",
+      "label": "Windows",
+      "platform": "windows",
+      "defaultTag": "latest",
+      "tag": "latest",
+      "ready": false,
+      "packages": [],
+      "failed_packages": [],
+      "nipkg_ready": false,
+      "nipkg_packages": [],
+      "labview_version": "",
+      "version": "latest"
+    },
+    {
+      "key": "linux",
+      "label": "Linux",
+      "platform": "linux",
+      "defaultTag": "latest",
+      "tag": "latest",
+      "ready": false,
+      "packages": [],
+      "failed_packages": [],
+      "nipkg_ready": false,
+      "nipkg_packages": [],
+      "labview_version": "",
+      "version": "latest"
+    }
+  ]
+}
