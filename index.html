@@ -273,7 +273,7 @@
     var RT = {"masscompile": {"label": "Mass Compile", "platforms": {"windows": {"wf": "masscompile-windows-container.yml", "inputs": {"commit_sha": "{sha}"}}, "linux": {"wf": "masscompile-linux-container.yml", "inputs": {"commit_sha": "{sha}"}}}}, "vi-analyzer": {"label": "VI Analyzer", "platforms": {"windows": {"wf": "run-vi-analyzer-windows-container.yml", "inputs": {"commit_sha": "{sha}"}}}}, "vidiff": {"label": "VIDiff", "platforms": {"windows": {"wf": "vidiff-windows-container.yml", "inputs": {"head_sha": "{sha}", "base_sha": "{parent}"}}, "linux": {"wf": "vidiff-linux-container.yml", "inputs": {"head_sha": "{sha}", "base_sha": "{parent}"}}}}, "snapshots": {"label": "VI Snapshots", "platforms": {"all": {"wf": "vi-snapshots.yml", "inputs": {"mode": "backfill"}}}}, "snapshots2": {"label": "VI Browser 2.0 Snapshots", "platforms": {"windows": {"wf": "vi-snapshots-json-windows.yml", "inputs": {"target_sha": "{sha}"}}, "linux": {"wf": "vi-snapshots-json.yml", "inputs": {"mode": "head", "target_sha": "{sha}"}}}}, "unit-tests": {"label": "Unit Tests", "platforms": {"windows": {"wf": "unit-tests-windows-container.yml", "inputs": {"commit_sha": "{sha}"}}}}, "antidoc": {"label": "Antidoc", "platforms": {"windows": {"wf": "run-antidoc-windows-container.yml", "inputs": {"commit_sha": "{sha}"}}}}};
     var RT_TIMING = {"masscompile": {"windows": {"total": 33.0, "work": null}, "linux": {"total": null, "work": null}}, "vi-analyzer": {"windows": {"total": 32.0, "work": null}}, "vidiff": {"windows": {"total": 26.0, "work": null}, "linux": {"total": null, "work": null}}, "snapshots2": {"windows": {"total": null, "work": null}, "linux": {"total": null, "work": null}}, "unit-tests": {"windows": {"total": 24.0, "work": null}}, "antidoc": {"windows": {"total": 45.0, "work": null}}};
     var REPO = "elijah286/MAL-Framework-API";
-    var BRANCH = "master";
+    var BRANCH = "main";
     var TOK_KEY = "lvci_dispatch_token";
     var state = {cap:null, sha:'', parent:'', short:''};
     function $(id){ return document.getElementById(id); }
@@ -1166,8 +1166,8 @@
     // activities to queue. Reuses dispatchCells (oldest-first, snapshots as one
     // backfill) + the same token and optimistic-queued bridge as every other
     // dispatch on the dashboard.
-    var HIST = [{"sha": "1a671fa58f15634a1c21bfcb71650f90257c5b91", "short": "1a671fa", "msg": "serializes all data", "snapshots2": {"windows": {"have": 0, "total": 24}, "linux": {"have": 0, "total": 24}}}, {"sha": "d44678b7b7f53b410cc61e5d2d87123b7c9b763d", "short": "d44678b", "msg": "successful build", "snapshots2": {"windows": {"have": 0, "total": 24}, "linux": {"have": 0, "total": 24}}}, {"sha": "117b7e543cc04c760ab2062ddb6686a7cf210de2", "short": "117b7e5", "msg": "support for config of steps and devices", "snapshots2": {"windows": {"have": 0, "total": 24}, "linux": {"have": 0, "total": 24}}}, {"sha": "ac4151914d38d57bfc8e5bac0b81bb35e417ab31", "short": "ac41519", "msg": "Moving over from SVN", "snapshots2": {"windows": {"have": 0, "total": 24}, "linux": {"have": 0, "total": 24}}}];                        // [{sha, short, msg}] newest-first (project revisions)
-    var RAN = {"antidoc": 1, "masscompile": 1, "snapshots": 1, "vi-analyzer": 1};                     // {cap:1} caps with a result/active run somewhere in history
+    var HIST = [];                        // [{sha, short, msg}] newest-first (project revisions)
+    var RAN = {};                     // {cap:1} caps with a result/active run somewhere in history
     var CAP_META = {                            // label + sub for each known capability
       'snapshots':   ['VI Snapshots', 'Renders every changed VI (classic HTML snapshots)'],
       'snapshots2':  ['VI Browser 2.0 Snapshots', 'Renders position-aware snapshots for the VI Browser 2.0 view'],
@@ -1676,7 +1676,7 @@
   </script>
   <main class="lvci-main">
   <h1>CI Dashboard — MAL-Framework-API</h1>
-  <div class="sub">Last updated: 2026-07-16 22:21 UTC &nbsp;|&nbsp; Auto-refreshes every 15 min</div>
+  <div class="sub">Last updated: 2026-07-16 23:18 UTC &nbsp;|&nbsp; Auto-refreshes every 15 min</div>
   <div class="nav">
     <a href="https://github.com/elijah286/MAL-Framework-API">GitHub</a>
     <a href="https://github.com/elijah286/MAL-Framework-API/actions">Actions</a>
@@ -1719,168 +1719,7 @@
         <th style="text-align:center">Antidoc</th>
       </tr>
     </thead>
-    <tbody>
-    <tr data-project="false" data-deponly="false">
-      <td class="cidash-rev">
-        <div class="cidash-rev-wrap">
-          <span class="cidash-avatar" style="background:hsl(150,42%,45%)" title="github-actions[bot]" aria-hidden="true">G</span>
-          <div class="cidash-rev-body">
-            <div class="cidash-rev-line1"><a href="https://elijah286.github.io/MAL-Framework-API/vi-snapshots/index.html?sha=b4a05236f84b2c21ce65274b90fe99859cdc42cb" class="cidash-rev-msg" title="ci: adopt LabVIEW CI tooling v4.4.10 (full update)">ci: adopt LabVIEW CI tooling v4.4.10 (full update)</a></div>
-            <div class="cidash-rev-meta"><a href="https://elijah286.github.io/MAL-Framework-API/vi-snapshots/index.html?sha=b4a05236f84b2c21ce65274b90fe99859cdc42cb" class="cidash-rev-sha" title="Browse this revision's VIs in the VI Browser">b4a0523</a><span class="cidash-rev-dot">&middot;</span>github-actions[bot]<span class="cidash-rev-dot">&middot;</span>2026-07-15</div>
-          </div>
-        </div>
-      </td>
-      <td style="text-align:center;color:var(--fg-muted);font-size:.75em">—</td>
-      <td style="text-align:center;color:var(--fg-muted);font-size:.75em">—</td>
-      <td style="text-align:center;color:var(--fg-muted);font-size:.75em">—</td>
-      <td style="text-align:center;color:var(--fg-muted);font-size:.75em">—</td>
-      <td style="text-align:center;color:var(--fg-muted);font-size:.75em">—</td>
-      <td style="text-align:center;color:var(--fg-muted);font-size:.75em">—</td>
-    </tr>
-
-    <tr data-project="false" data-deponly="false">
-      <td class="cidash-rev">
-        <div class="cidash-rev-wrap">
-          <span class="cidash-avatar" style="background:hsl(66,42%,45%)" title="Elijah Kerry" aria-hidden="true">E</span>
-          <div class="cidash-rev-body">
-            <div class="cidash-rev-line1"><a href="https://elijah286.github.io/MAL-Framework-API/vi-snapshots/index.html?sha=d84fdf8eee23cdaec09233973b452ef404069603" class="cidash-rev-msg" title="Add LabVIEW CI pipeline">Add LabVIEW CI pipeline</a></div>
-            <div class="cidash-rev-meta"><a href="https://elijah286.github.io/MAL-Framework-API/vi-snapshots/index.html?sha=d84fdf8eee23cdaec09233973b452ef404069603" class="cidash-rev-sha" title="Browse this revision's VIs in the VI Browser">d84fdf8</a><span class="cidash-rev-dot">&middot;</span>Elijah Kerry<span class="cidash-rev-dot">&middot;</span>2026-06-19</div>
-          </div>
-        </div>
-      </td>
-      <td style="text-align:center;color:var(--fg-muted);font-size:.75em">—</td>
-      <td style="text-align:center;color:var(--fg-muted);font-size:.75em">—</td>
-      <td style="text-align:center;color:var(--fg-muted);font-size:.75em">—</td>
-      <td style="text-align:center;color:var(--fg-muted);font-size:.75em">—</td>
-      <td style="text-align:center;color:var(--fg-muted);font-size:.75em">—</td>
-      <td style="text-align:center;color:var(--fg-muted);font-size:.75em">—</td>
-    </tr>
-
-    <tr data-project="false" data-deponly="false">
-      <td class="cidash-rev">
-        <div class="cidash-rev-wrap">
-          <span class="cidash-avatar" style="background:hsl(66,42%,45%)" title="Elijah Kerry" aria-hidden="true">E</span>
-          <div class="cidash-rev-body">
-            <div class="cidash-rev-line1"><a href="https://elijah286.github.io/MAL-Framework-API/vi-snapshots/index.html?sha=2fcc90d4e225c5a91e3d2ce5e4dfd2ecf4e28e21" class="cidash-rev-msg" title="Add LabVIEW CI pipeline">Add LabVIEW CI pipeline</a></div>
-            <div class="cidash-rev-meta"><a href="https://elijah286.github.io/MAL-Framework-API/vi-snapshots/index.html?sha=2fcc90d4e225c5a91e3d2ce5e4dfd2ecf4e28e21" class="cidash-rev-sha" title="Browse this revision's VIs in the VI Browser">2fcc90d</a><span class="cidash-rev-dot">&middot;</span>Elijah Kerry<span class="cidash-rev-dot">&middot;</span>2026-06-18</div>
-          </div>
-        </div>
-      </td>
-      <td style="text-align:center;color:var(--fg-muted);font-size:.75em">—</td>
-      <td style="text-align:center;color:var(--fg-muted);font-size:.75em">—</td>
-      <td style="text-align:center;color:var(--fg-muted);font-size:.75em">—</td>
-      <td style="text-align:center;color:var(--fg-muted);font-size:.75em">—</td>
-      <td style="text-align:center;color:var(--fg-muted);font-size:.75em">—</td>
-      <td style="text-align:center;color:var(--fg-muted);font-size:.75em">—</td>
-    </tr>
-
-    <tr data-project="false" data-deponly="false">
-      <td class="cidash-rev">
-        <div class="cidash-rev-wrap">
-          <span class="cidash-avatar" style="background:hsl(66,42%,45%)" title="Elijah Kerry" aria-hidden="true">E</span>
-          <div class="cidash-rev-body">
-            <div class="cidash-rev-line1"><a href="https://elijah286.github.io/MAL-Framework-API/vi-snapshots/index.html?sha=95fea8bbad943965008e5a52f640a39d01422428" class="cidash-rev-msg" title="Add LabVIEW CI pipeline">Add LabVIEW CI pipeline</a></div>
-            <div class="cidash-rev-meta"><a href="https://elijah286.github.io/MAL-Framework-API/vi-snapshots/index.html?sha=95fea8bbad943965008e5a52f640a39d01422428" class="cidash-rev-sha" title="Browse this revision's VIs in the VI Browser">95fea8b</a><span class="cidash-rev-dot">&middot;</span>Elijah Kerry<span class="cidash-rev-dot">&middot;</span>2026-06-18</div>
-          </div>
-        </div>
-      </td>
-      <td style="text-align:center;color:var(--fg-muted);font-size:.75em">—</td>
-      <td style="text-align:center;color:var(--fg-muted);font-size:.75em">—</td>
-      <td style="text-align:center;color:var(--fg-muted);font-size:.75em">—</td>
-      <td style="text-align:center;color:var(--fg-muted);font-size:.75em">—</td>
-      <td style="text-align:center;color:var(--fg-muted);font-size:.75em">—</td>
-      <td style="text-align:center;color:var(--fg-muted);font-size:.75em">—</td>
-    </tr>
-
-    <tr data-project="false" data-deponly="false">
-      <td class="cidash-rev">
-        <div class="cidash-rev-wrap">
-          <span class="cidash-avatar" style="background:hsl(66,42%,45%)" title="Elijah Kerry" aria-hidden="true">E</span>
-          <div class="cidash-rev-body">
-            <div class="cidash-rev-line1"><a href="https://elijah286.github.io/MAL-Framework-API/vi-snapshots/index.html?sha=31322a1352e06046cc0083a931c874a2b1984ff3" class="cidash-rev-msg" title="Add LabVIEW CI pipeline">Add LabVIEW CI pipeline</a></div>
-            <div class="cidash-rev-meta"><a href="https://elijah286.github.io/MAL-Framework-API/vi-snapshots/index.html?sha=31322a1352e06046cc0083a931c874a2b1984ff3" class="cidash-rev-sha" title="Browse this revision's VIs in the VI Browser">31322a1</a><span class="cidash-rev-dot">&middot;</span>Elijah Kerry<span class="cidash-rev-dot">&middot;</span>2026-06-18</div>
-          </div>
-        </div>
-      </td>
-      <td style="text-align:center;color:var(--fg-muted);font-size:.75em">—</td>
-      <td style="text-align:center;color:var(--fg-muted);font-size:.75em">—</td>
-      <td style="text-align:center;color:var(--fg-muted);font-size:.75em">—</td>
-      <td style="text-align:center;color:var(--fg-muted);font-size:.75em">—</td>
-      <td style="text-align:center;color:var(--fg-muted);font-size:.75em">—</td>
-      <td style="text-align:center;color:var(--fg-muted);font-size:.75em">—</td>
-    </tr>
-
-    <tr data-project="true" data-deponly="false">
-      <td class="cidash-rev">
-        <div class="cidash-rev-wrap">
-          <span class="cidash-avatar" style="background:hsl(98,42%,45%)" title="elijahkerry" aria-hidden="true">E</span>
-          <div class="cidash-rev-body">
-            <div class="cidash-rev-line1"><a href="https://elijah286.github.io/MAL-Framework-API/vi-snapshots/index.html?sha=1a671fa58f15634a1c21bfcb71650f90257c5b91" class="cidash-rev-msg" title="serializes all data">serializes all data</a><a href="https://elijah286.github.io/MAL-Framework-API/vi-snapshots/index.html?sha=1a671fa58f15634a1c21bfcb71650f90257c5b91" class="snap-glyph" title="Snapshots exist for this revision" aria-label="Snapshots exist for this revision"><svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor" aria-hidden="true" style="vertical-align:text-bottom;flex:0 0 auto"><path d="M1.75 2.5a.25.25 0 0 0-.25.25v10.5c0 .138.112.25.25.25h.94l8.5-8.5a.25.25 0 0 1 .354 0l1.756 1.757V2.75a.25.25 0 0 0-.25-.25H1.75ZM14.5 9.232 11.06 5.79 3.852 13h9.898a.25.25 0 0 0 .25-.25V9.232ZM1.75 1h12.5c.966 0 1.75.784 1.75 1.75v10.5A1.75 1.75 0 0 1 14.25 15H1.75A1.75 1.75 0 0 1 0 13.25V2.75C0 1.784.784 1 1.75 1ZM5.5 6a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z"/></svg></a></div>
-            <div class="cidash-rev-meta"><a href="https://elijah286.github.io/MAL-Framework-API/vi-snapshots/index.html?sha=1a671fa58f15634a1c21bfcb71650f90257c5b91" class="cidash-rev-sha" title="Browse this revision's VIs in the VI Browser">1a671fa</a><span class="cidash-rev-dot">&middot;</span>elijahkerry<span class="cidash-rev-dot">&middot;</span>2018-04-11</div>
-          </div>
-        </div>
-      </td>
-      <td style="text-align:center"><a href="#" class="cidash-run" data-cap="masscompile" data-sha="1a671fa58f15634a1c21bfcb71650f90257c5b91" data-parent="d44678b7b7f53b410cc61e5d2d87123b7c9b763d" data-short="1a671fa" title="Run Mass Compile for commit 1a671fa">&#9655;</a></td>
-      <td style="text-align:center" class="cidash-cap-cell" data-cap="vi-analyzer" data-sha="1a671fa58f15634a1c21bfcb71650f90257c5b91" data-parent="d44678b7b7f53b410cc61e5d2d87123b7c9b763d" data-short="1a671fa" data-ts="2026-06-18T22:08:37Z"><span class="cidash-chip cc-fail"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M3.72 3.72a.75.75 0 0 1 1.06 0L8 6.94l3.22-3.22a.75.75 0 1 1 1.06 1.06L9.06 8l3.22 3.22a.75.75 0 1 1-1.06 1.06L8 9.06l-3.22 3.22a.75.75 0 0 1-1.06-1.06L6.94 8 3.72 4.78a.75.75 0 0 1 0-1.06Z"/></svg><a href="https://github.com/elijah286/MAL-Framework-API/actions/runs/27792334993" style="color:inherit">analyze</a></span></td>
-      <td style="text-align:center"><a href="#" class="cidash-run" data-cap="vidiff" data-sha="1a671fa58f15634a1c21bfcb71650f90257c5b91" data-parent="d44678b7b7f53b410cc61e5d2d87123b7c9b763d" data-short="1a671fa" title="Run VIDiff for commit 1a671fa">&#9655;</a></td>
-      <td style="text-align:center" class="cidash-cap-cell" data-cap="snapshots" data-sha="1a671fa58f15634a1c21bfcb71650f90257c5b91" data-parent="d44678b7b7f53b410cc61e5d2d87123b7c9b763d" data-short="1a671fa" data-ts="" data-done="true"><span class="cidash-chip cc-info" title="Snapshots rendered for all 24 VIs in this revision"><a href="https://elijah286.github.io/MAL-Framework-API/vi-snapshots/index.html?sha=1a671fa58f15634a1c21bfcb71650f90257c5b91" style="color:inherit">24</a></span></td>
-      <td style="text-align:center"><a href="#" class="cidash-run" data-cap="unit-tests" data-sha="1a671fa58f15634a1c21bfcb71650f90257c5b91" data-parent="d44678b7b7f53b410cc61e5d2d87123b7c9b763d" data-short="1a671fa" title="Run Unit Tests for commit 1a671fa">&#9655;</a></td>
-      <td style="text-align:center" class="cidash-cap-cell" data-cap="antidoc" data-sha="1a671fa58f15634a1c21bfcb71650f90257c5b91" data-parent="d44678b7b7f53b410cc61e5d2d87123b7c9b763d" data-short="1a671fa" data-ts="2026-06-18T22:09:00Z"><span class="cidash-chip cc-fail"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M3.72 3.72a.75.75 0 0 1 1.06 0L8 6.94l3.22-3.22a.75.75 0 1 1 1.06 1.06L9.06 8l3.22 3.22a.75.75 0 1 1-1.06 1.06L8 9.06l-3.22 3.22a.75.75 0 0 1-1.06-1.06L6.94 8 3.72 4.78a.75.75 0 0 1 0-1.06Z"/></svg><a href="https://github.com/elijah286/MAL-Framework-API/actions/runs/27792339116" style="color:inherit">docs</a></span></td>
-    </tr>
-
-    <tr data-project="true" data-deponly="false">
-      <td class="cidash-rev">
-        <div class="cidash-rev-wrap">
-          <span class="cidash-avatar" style="background:hsl(98,42%,45%)" title="elijahkerry" aria-hidden="true">E</span>
-          <div class="cidash-rev-body">
-            <div class="cidash-rev-line1"><a href="https://elijah286.github.io/MAL-Framework-API/vi-snapshots/index.html?sha=d44678b7b7f53b410cc61e5d2d87123b7c9b763d" class="cidash-rev-msg" title="successful build">successful build</a><a href="https://elijah286.github.io/MAL-Framework-API/vi-snapshots/index.html?sha=d44678b7b7f53b410cc61e5d2d87123b7c9b763d" class="snap-glyph" title="Snapshots exist for this revision" aria-label="Snapshots exist for this revision"><svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor" aria-hidden="true" style="vertical-align:text-bottom;flex:0 0 auto"><path d="M1.75 2.5a.25.25 0 0 0-.25.25v10.5c0 .138.112.25.25.25h.94l8.5-8.5a.25.25 0 0 1 .354 0l1.756 1.757V2.75a.25.25 0 0 0-.25-.25H1.75ZM14.5 9.232 11.06 5.79 3.852 13h9.898a.25.25 0 0 0 .25-.25V9.232ZM1.75 1h12.5c.966 0 1.75.784 1.75 1.75v10.5A1.75 1.75 0 0 1 14.25 15H1.75A1.75 1.75 0 0 1 0 13.25V2.75C0 1.784.784 1 1.75 1ZM5.5 6a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z"/></svg></a></div>
-            <div class="cidash-rev-meta"><a href="https://elijah286.github.io/MAL-Framework-API/vi-snapshots/index.html?sha=d44678b7b7f53b410cc61e5d2d87123b7c9b763d" class="cidash-rev-sha" title="Browse this revision's VIs in the VI Browser">d44678b</a><span class="cidash-rev-dot">&middot;</span>elijahkerry<span class="cidash-rev-dot">&middot;</span>2018-03-07</div>
-          </div>
-        </div>
-      </td>
-      <td style="text-align:center"><a href="#" class="cidash-run" data-cap="masscompile" data-sha="d44678b7b7f53b410cc61e5d2d87123b7c9b763d" data-parent="117b7e543cc04c760ab2062ddb6686a7cf210de2" data-short="d44678b" title="Run Mass Compile for commit d44678b">&#9655;</a></td>
-      <td style="text-align:center"><a href="#" class="cidash-run" data-cap="vi-analyzer" data-sha="d44678b7b7f53b410cc61e5d2d87123b7c9b763d" data-parent="117b7e543cc04c760ab2062ddb6686a7cf210de2" data-short="d44678b" title="Run VI Analyzer for commit d44678b">&#9655;</a></td>
-      <td style="text-align:center"><a href="#" class="cidash-run" data-cap="vidiff" data-sha="d44678b7b7f53b410cc61e5d2d87123b7c9b763d" data-parent="117b7e543cc04c760ab2062ddb6686a7cf210de2" data-short="d44678b" title="Run VIDiff for commit d44678b">&#9655;</a></td>
-      <td style="text-align:center" class="cidash-cap-cell" data-cap="snapshots" data-sha="d44678b7b7f53b410cc61e5d2d87123b7c9b763d" data-parent="117b7e543cc04c760ab2062ddb6686a7cf210de2" data-short="d44678b" data-ts="" data-done="true"><span class="cidash-chip cc-info" title="Snapshots rendered for all 24 VIs in this revision"><a href="https://elijah286.github.io/MAL-Framework-API/vi-snapshots/index.html?sha=d44678b7b7f53b410cc61e5d2d87123b7c9b763d" style="color:inherit">24</a></span></td>
-      <td style="text-align:center"><a href="#" class="cidash-run" data-cap="unit-tests" data-sha="d44678b7b7f53b410cc61e5d2d87123b7c9b763d" data-parent="117b7e543cc04c760ab2062ddb6686a7cf210de2" data-short="d44678b" title="Run Unit Tests for commit d44678b">&#9655;</a></td>
-      <td style="text-align:center"><a href="#" class="cidash-run" data-cap="antidoc" data-sha="d44678b7b7f53b410cc61e5d2d87123b7c9b763d" data-parent="117b7e543cc04c760ab2062ddb6686a7cf210de2" data-short="d44678b" title="Run Antidoc for commit d44678b">&#9655;</a></td>
-    </tr>
-
-    <tr data-project="true" data-deponly="false">
-      <td class="cidash-rev">
-        <div class="cidash-rev-wrap">
-          <span class="cidash-avatar" style="background:hsl(98,42%,45%)" title="elijahkerry" aria-hidden="true">E</span>
-          <div class="cidash-rev-body">
-            <div class="cidash-rev-line1"><a href="https://elijah286.github.io/MAL-Framework-API/vi-snapshots/index.html?sha=117b7e543cc04c760ab2062ddb6686a7cf210de2" class="cidash-rev-msg" title="support for config of steps and devices">support for config of steps and devices</a><a href="https://elijah286.github.io/MAL-Framework-API/vi-snapshots/index.html?sha=117b7e543cc04c760ab2062ddb6686a7cf210de2" class="snap-glyph" title="Snapshots exist for this revision" aria-label="Snapshots exist for this revision"><svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor" aria-hidden="true" style="vertical-align:text-bottom;flex:0 0 auto"><path d="M1.75 2.5a.25.25 0 0 0-.25.25v10.5c0 .138.112.25.25.25h.94l8.5-8.5a.25.25 0 0 1 .354 0l1.756 1.757V2.75a.25.25 0 0 0-.25-.25H1.75ZM14.5 9.232 11.06 5.79 3.852 13h9.898a.25.25 0 0 0 .25-.25V9.232ZM1.75 1h12.5c.966 0 1.75.784 1.75 1.75v10.5A1.75 1.75 0 0 1 14.25 15H1.75A1.75 1.75 0 0 1 0 13.25V2.75C0 1.784.784 1 1.75 1ZM5.5 6a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z"/></svg></a></div>
-            <div class="cidash-rev-meta"><a href="https://elijah286.github.io/MAL-Framework-API/vi-snapshots/index.html?sha=117b7e543cc04c760ab2062ddb6686a7cf210de2" class="cidash-rev-sha" title="Browse this revision's VIs in the VI Browser">117b7e5</a><span class="cidash-rev-dot">&middot;</span>elijahkerry<span class="cidash-rev-dot">&middot;</span>2018-03-07</div>
-          </div>
-        </div>
-      </td>
-      <td style="text-align:center"><a href="#" class="cidash-run" data-cap="masscompile" data-sha="117b7e543cc04c760ab2062ddb6686a7cf210de2" data-parent="ac4151914d38d57bfc8e5bac0b81bb35e417ab31" data-short="117b7e5" title="Run Mass Compile for commit 117b7e5">&#9655;</a></td>
-      <td style="text-align:center"><a href="#" class="cidash-run" data-cap="vi-analyzer" data-sha="117b7e543cc04c760ab2062ddb6686a7cf210de2" data-parent="ac4151914d38d57bfc8e5bac0b81bb35e417ab31" data-short="117b7e5" title="Run VI Analyzer for commit 117b7e5">&#9655;</a></td>
-      <td style="text-align:center"><a href="#" class="cidash-run" data-cap="vidiff" data-sha="117b7e543cc04c760ab2062ddb6686a7cf210de2" data-parent="ac4151914d38d57bfc8e5bac0b81bb35e417ab31" data-short="117b7e5" title="Run VIDiff for commit 117b7e5">&#9655;</a></td>
-      <td style="text-align:center" class="cidash-cap-cell" data-cap="snapshots" data-sha="117b7e543cc04c760ab2062ddb6686a7cf210de2" data-parent="ac4151914d38d57bfc8e5bac0b81bb35e417ab31" data-short="117b7e5" data-ts="" data-done="true"><span class="cidash-chip cc-info" title="Snapshots rendered for all 24 VIs in this revision"><a href="https://elijah286.github.io/MAL-Framework-API/vi-snapshots/index.html?sha=117b7e543cc04c760ab2062ddb6686a7cf210de2" style="color:inherit">24</a></span></td>
-      <td style="text-align:center"><a href="#" class="cidash-run" data-cap="unit-tests" data-sha="117b7e543cc04c760ab2062ddb6686a7cf210de2" data-parent="ac4151914d38d57bfc8e5bac0b81bb35e417ab31" data-short="117b7e5" title="Run Unit Tests for commit 117b7e5">&#9655;</a></td>
-      <td style="text-align:center"><a href="#" class="cidash-run" data-cap="antidoc" data-sha="117b7e543cc04c760ab2062ddb6686a7cf210de2" data-parent="ac4151914d38d57bfc8e5bac0b81bb35e417ab31" data-short="117b7e5" title="Run Antidoc for commit 117b7e5">&#9655;</a></td>
-    </tr>
-
-    <tr data-project="true" data-deponly="false">
-      <td class="cidash-rev">
-        <div class="cidash-rev-wrap">
-          <span class="cidash-avatar" style="background:hsl(61,42%,45%)" title="elijah286" aria-hidden="true">E</span>
-          <div class="cidash-rev-body">
-            <div class="cidash-rev-line1"><a href="https://elijah286.github.io/MAL-Framework-API/vi-snapshots/index.html?sha=ac4151914d38d57bfc8e5bac0b81bb35e417ab31" class="cidash-rev-msg" title="Moving over from SVN">Moving over from SVN</a><a href="https://elijah286.github.io/MAL-Framework-API/vi-snapshots/index.html?sha=ac4151914d38d57bfc8e5bac0b81bb35e417ab31" class="snap-glyph" title="Snapshots exist for this revision" aria-label="Snapshots exist for this revision"><svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor" aria-hidden="true" style="vertical-align:text-bottom;flex:0 0 auto"><path d="M1.75 2.5a.25.25 0 0 0-.25.25v10.5c0 .138.112.25.25.25h.94l8.5-8.5a.25.25 0 0 1 .354 0l1.756 1.757V2.75a.25.25 0 0 0-.25-.25H1.75ZM14.5 9.232 11.06 5.79 3.852 13h9.898a.25.25 0 0 0 .25-.25V9.232ZM1.75 1h12.5c.966 0 1.75.784 1.75 1.75v10.5A1.75 1.75 0 0 1 14.25 15H1.75A1.75 1.75 0 0 1 0 13.25V2.75C0 1.784.784 1 1.75 1ZM5.5 6a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z"/></svg></a></div>
-            <div class="cidash-rev-meta"><a href="https://elijah286.github.io/MAL-Framework-API/vi-snapshots/index.html?sha=ac4151914d38d57bfc8e5bac0b81bb35e417ab31" class="cidash-rev-sha" title="Browse this revision's VIs in the VI Browser">ac41519</a><span class="cidash-rev-dot">&middot;</span>elijah286<span class="cidash-rev-dot">&middot;</span>2016-07-25</div>
-          </div>
-        </div>
-      </td>
-      <td style="text-align:center" class="cidash-cap-cell" data-cap="masscompile" data-sha="ac4151914d38d57bfc8e5bac0b81bb35e417ab31" data-parent="" data-short="ac41519" data-ts="2026-06-18T22:08:09Z"><span class="cidash-chip cc-fail"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M3.72 3.72a.75.75 0 0 1 1.06 0L8 6.94l3.22-3.22a.75.75 0 1 1 1.06 1.06L9.06 8l3.22 3.22a.75.75 0 1 1-1.06 1.06L8 9.06l-3.22 3.22a.75.75 0 0 1-1.06-1.06L6.94 8 3.72 4.78a.75.75 0 0 1 0-1.06Z"/></svg><a href="https://github.com/elijah286/MAL-Framework-API/actions/runs/27792315839" style="color:inherit">compile</a></span></td>
-      <td style="text-align:center"><a href="#" class="cidash-run" data-cap="vi-analyzer" data-sha="ac4151914d38d57bfc8e5bac0b81bb35e417ab31" data-parent="" data-short="ac41519" title="Run VI Analyzer for commit ac41519">&#9655;</a></td>
-      <td style="text-align:center"><a href="#" class="cidash-run" data-cap="vidiff" data-sha="ac4151914d38d57bfc8e5bac0b81bb35e417ab31" data-parent="" data-short="ac41519" title="Run VIDiff for commit ac41519">&#9655;</a></td>
-      <td style="text-align:center" class="cidash-cap-cell" data-cap="snapshots" data-sha="ac4151914d38d57bfc8e5bac0b81bb35e417ab31" data-parent="" data-short="ac41519" data-ts="" data-done="true"><span class="cidash-chip cc-info" title="Snapshots rendered for all 24 VIs in this revision"><a href="https://elijah286.github.io/MAL-Framework-API/vi-snapshots/index.html?sha=ac4151914d38d57bfc8e5bac0b81bb35e417ab31" style="color:inherit">24</a></span></td>
-      <td style="text-align:center"><a href="#" class="cidash-run" data-cap="unit-tests" data-sha="ac4151914d38d57bfc8e5bac0b81bb35e417ab31" data-parent="" data-short="ac41519" title="Run Unit Tests for commit ac41519">&#9655;</a></td>
-      <td style="text-align:center"><a href="#" class="cidash-run" data-cap="antidoc" data-sha="ac4151914d38d57bfc8e5bac0b81bb35e417ab31" data-parent="" data-short="ac41519" title="Run Antidoc for commit ac41519">&#9655;</a></td>
-    </tr></tbody>
+    <tbody></tbody>
   </table>
   </div>
   <div id="empty-state" style="display:none;padding:18px;text-align:center;color:var(--fg-muted);font-size:.9em">
