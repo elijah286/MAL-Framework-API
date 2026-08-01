@@ -1,0 +1,21 @@
+{
+  "schema": 2,
+  "platform": "linux",
+  "version": "linux-faa4596c3848",
+  "labview_version": "2026",
+  "base_image": "ghcr.io/elijah286/labview-ci-with-containers-labview:linux-2026",
+  "base_digest": "sha256:2e2ded8d48f845469156b66f5d0224b0167e8bbc4c6092e7247fd7e82de1ddea",
+  "seed_image": "",
+  "seed_digest": "",
+  "worker_layer": "",
+  "copied_from_base": false,
+  "image_ref": "ghcr.io/elijah286/mal-framework-api-labview:linux-faa4596c3848",
+  "build_date": "2026-08-01T05:03:13Z",
+  "git_sha": "b4a05236f84b2c21ce65274b90fe99859cdc42cb",
+  "run_url": "https://github.com/elijah286/MAL-Framework-API/actions/runs/30685078044",
+  "vipc": [],
+  "vipm_raw": "",
+  "vipm_packages": [],
+  "nipkg_raw": "",
+  "nipkg_packages": []
+}
